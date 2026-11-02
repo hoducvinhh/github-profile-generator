@@ -77,6 +77,14 @@ export default function LandingPage() {
 
           <div className="flex items-center gap-3">
             <Link
+              href="/travel"
+              className="flex items-center gap-1.5 text-xs font-mono text-emerald-400 hover:text-emerald-300 transition-colors border border-emerald-500/30 px-2.5 py-1 rounded bg-emerald-950/30"
+              title="Khám phá Vẻ đẹp Làng quê Việt Nam"
+            >
+              <span>VIỆT NAM 🌾</span>
+            </Link>
+
+            <Link
               href="/station"
               className="flex items-center gap-1.5 text-xs font-mono text-cyan-400 hover:text-cyan-300 transition-colors border border-cyan-500/30 px-2.5 py-1 rounded bg-cyan-950/30"
               title="Khám phá Trạm vũ trụ bão tuyết Outpost 94"

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Outfit, JetBrains_Mono, Bebas_Neue } from "next/font/google";
+import { Outfit, JetBrains_Mono, Bebas_Neue, Playfair_Display } from "next/font/google";
 import "@/styles/globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
@@ -20,6 +20,12 @@ const bebasNeue = Bebas_Neue({
   weight: "400",
   subsets: ["latin"],
   variable: "--font-bebas",
+  display: "swap",
+});
+
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-serif",
   display: "swap",
 });
 
@@ -53,7 +59,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${outfit.variable} ${jetbrainsMono.variable} ${bebasNeue.variable}`}
+      className={`${outfit.variable} ${jetbrainsMono.variable} ${bebasNeue.variable} ${playfairDisplay.variable}`}
     >
       <body className={`${outfit.className} font-sans antialiased bg-background text-foreground transition-colors duration-200 selection:bg-amber-500/25 selection:text-amber-500`}>
         <ThemeProvider
