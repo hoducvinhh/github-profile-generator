@@ -9,24 +9,17 @@ import { RawEditor } from "@/components/preview/raw-editor";
 import { useProfileStore } from "@/stores/use-profile-store";
 import { serializeProfileMarkdown } from "@/lib/markdown/serializer";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import {
   Eye,
   FileCode,
   Columns,
-  Smartphone,
-  Monitor,
-  Github,
+  Sparkles,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 export default function BuilderPage() {
   const { config, undo, redo, canUndo, canRedo } = useProfileStore();
   const [activeTab, setActiveTab] = React.useState<"preview" | "code" | "split">(
     "preview"
-  );
-  const [deviceMode, setDeviceMode] = React.useState<"desktop" | "mobile">(
-    "desktop"
   );
 
   // Global hotkeys (Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z)
@@ -57,95 +50,75 @@ export default function BuilderPage() {
 
       <main className="flex flex-1 overflow-hidden">
         {/* Left Side: Editor Workspace (Section List + Active Inspector) */}
-        <section className="flex w-full md:w-[480px] lg:w-[540px] xl:w-[600px] shrink-0 border-r bg-card/40 flex-col md:flex-row">
+        <section className="flex w-full md:w-[500px] lg:w-[580px] xl:w-[640px] shrink-0 border-r border-border/80 bg-background flex-col md:flex-row">
           {/* Section Reorder Column */}
-          <div className="w-full md:w-[220px] lg:w-[240px] border-b md:border-b-0 md:border-r p-3 h-[240px] md:h-full overflow-hidden">
+          <div className="w-full md:w-[240px] lg:w-[260px] border-b md:border-b-0 md:border-r border-border/70 p-3 h-[240px] md:h-full overflow-hidden bg-background">
             <SortableSectionList />
           </div>
 
           {/* Section Inspector Column */}
-          <div className="flex-1 p-4 h-[calc(100vh-14rem)] md:h-full overflow-hidden">
+          <div className="flex-1 p-3.5 h-[calc(100vh-14rem)] md:h-full overflow-hidden bg-background">
             <MasterInspector />
           </div>
         </section>
 
         {/* Right Side: Preview & Code View */}
-        <section className="hidden md:flex flex-1 flex-col overflow-hidden bg-muted/20">
+        <section className="hidden md:flex flex-1 flex-col overflow-hidden bg-background">
           {/* Preview Toolbar */}
-          <div className="flex h-11 items-center justify-between border-b bg-background px-4">
+          <div className="flex h-11 items-center justify-between border-b border-border/70 bg-background px-4">
             <div className="flex items-center gap-2">
               <Tabs
                 value={activeTab}
                 onValueChange={(v) => setActiveTab(v as any)}
                 className="w-auto"
               >
-                <TabsList className="h-8">
-                  <TabsTrigger value="preview" className="h-7 text-xs gap-1.5 px-3">
-                    <Eye className="h-3.5 w-3.5" />
-                    <span>Preview</span>
+                <TabsList className="h-7.5 bg-muted/60 p-0.5 border border-border/60">
+                  <TabsTrigger value="preview" className="h-6.5 text-xs gap-1.5 px-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                    <Eye className="h-3 w-3 text-emerald-400" />
+                    <span>Live Preview</span>
                   </TabsTrigger>
-                  <TabsTrigger value="code" className="h-7 text-xs gap-1.5 px-3">
-                    <FileCode className="h-3.5 w-3.5" />
-                    <span>Markdown</span>
+                  <TabsTrigger value="code" className="h-6.5 text-xs gap-1.5 px-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                    <FileCode className="h-3 w-3" />
+                    <span>Markdown Code</span>
                   </TabsTrigger>
-                  <TabsTrigger value="split" className="h-7 text-xs gap-1.5 px-3">
-                    <Columns className="h-3.5 w-3.5" />
+                  <TabsTrigger value="split" className="h-6.5 text-xs gap-1.5 px-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                    <Columns className="h-3 w-3" />
                     <span>Split View</span>
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
 
-            <div className="flex items-center gap-1">
-              <Button
-                variant={deviceMode === "desktop" ? "secondary" : "ghost"}
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => setDeviceMode("desktop")}
-                title="Desktop View"
-              >
-                <Monitor className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant={deviceMode === "mobile" ? "secondary" : "ghost"}
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => setDeviceMode("mobile")}
-                title="Mobile View"
-              >
-                <Smartphone className="h-3.5 w-3.5" />
-              </Button>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
+              <Sparkles className="h-3 w-3 text-emerald-400" />
+              <span>Real-time Sync</span>
             </div>
           </div>
 
-          {/* Preview Content Area */}
-          <div className="flex-1 overflow-hidden p-4">
-            <div
-              className={cn(
-                "h-full mx-auto transition-all duration-200",
-                deviceMode === "mobile" ? "max-w-[420px]" : "w-full",
-                activeTab === "split" && "grid grid-cols-2 gap-4"
-              )}
-            >
-              {activeTab === "preview" && (
+          {/* Canvas Area with clean framing */}
+          <div className="flex-1 overflow-hidden p-3 lg:p-4 bg-muted/15">
+            {activeTab === "preview" && (
+              <div className="h-full w-full">
                 <MarkdownPreview markdown={markdown} />
-              )}
+              </div>
+            )}
 
-              {activeTab === "code" && (
+            {activeTab === "code" && (
+              <div className="h-full w-full rounded-xl border border-border/80 overflow-hidden shadow-lg">
                 <RawEditor value={markdown} />
-              )}
+              </div>
+            )}
 
-              {activeTab === "split" && (
-                <>
-                  <div className="h-full overflow-hidden">
-                    <MarkdownPreview markdown={markdown} />
-                  </div>
-                  <div className="h-full overflow-hidden">
-                    <RawEditor value={markdown} />
-                  </div>
-                </>
-              )}
-            </div>
+            {activeTab === "split" && (
+              <div className="grid h-full grid-cols-2 gap-3">
+                <div className="h-full overflow-hidden">
+                  <MarkdownPreview markdown={markdown} />
+                </div>
+                <div className="h-full rounded-xl border border-border/80 overflow-hidden shadow-lg">
+                  <RawEditor value={markdown} />
+                </div>
+              </div>
+            )}
           </div>
         </section>
       </main>

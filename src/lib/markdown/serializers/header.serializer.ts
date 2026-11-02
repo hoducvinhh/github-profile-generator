@@ -35,7 +35,7 @@ export function serializeHeader(
 
   // Title / Subtitle
   if (config.title?.trim()) {
-    lines.push(`### ${config.title.trim()}`);
+    lines.push(`## ${config.title.trim()}`);
     lines.push("");
   }
 
