@@ -17,6 +17,8 @@ interface Stork {
   glideTimer: number;
   isGliding: boolean;
   baseY: number;
+  tilt: number;
+  wobblePhase: number;
 }
 
 interface Fish {
@@ -184,29 +186,31 @@ export function CountrysideCanvas({
 
     setupCanvasSize();
 
-    // 1. FLOCK OF WHITE STORKS (AERIAL HIGH-ANGLE PERSPECTIVE)
-    const STORK_COUNT = 6;
+    // 1. FLOCK OF WHITE STORKS (AERIAL HIGH-ANGLE PERSPECTIVE & GHIBLI AESTHETICS)
+    const STORK_COUNT = 7;
     let storks: Stork[] = [];
 
     const initStorks = () => {
       storks = Array.from({ length: STORK_COUNT }, (_, i) => {
-        const depth = 0.55 + (i / STORK_COUNT) * 0.45;
-        const spawnX = cssWidth * 0.35 + i * 36 + Math.random() * 15;
-        const spawnY = cssHeight * 0.36 + i * 14 + Math.random() * 12;
+        const depth = 0.6 + (i / STORK_COUNT) * 0.4;
+        const spawnX = cssWidth * 0.45 + i * 70 + (Math.random() - 0.5) * 35;
+        const spawnY = cssHeight * 0.22 + i * 22 + (Math.random() - 0.5) * 20;
 
         return {
           x: spawnX,
           y: spawnY,
           baseY: spawnY,
-          vx: -(0.5 + depth * 0.35),
+          vx: -(0.6 + depth * 0.35),
           vy: 0,
-          scale: 7 + depth * 5,
+          scale: 13 + depth * 7,
           depth,
-          opacity: 0.8 + depth * 0.2,
+          opacity: 0.85 + depth * 0.15,
           flapPhase: Math.random() * Math.PI * 2,
-          flapSpeed: 0.065 + Math.random() * 0.02,
-          glideTimer: Math.random() * 120 + 80,
-          isGliding: false,
+          flapSpeed: 0.055 + Math.random() * 0.02,
+          glideTimer: 60 + Math.random() * 100,
+          isGliding: Math.random() > 0.4,
+          tilt: 0,
+          wobblePhase: Math.random() * Math.PI * 2,
         };
       });
     };
@@ -558,115 +562,235 @@ export function CountrysideCanvas({
 
 
       // =========================================================================
-      // 5. FLYING WHITE STORKS (AERIAL ANGLE)
+      // 5. FLYING WHITE STORKS (AERIAL HIGH-ANGLE PERSPECTIVE & GHIBLI AESTHETICS)
       // =========================================================================
       for (const s of storks) {
         s.x += s.vx;
 
+        // Dynamic gliding vs flapping cycles (thermal updrafts)
         s.glideTimer -= 1;
         if (s.glideTimer <= 0) {
           s.isGliding = !s.isGliding;
           s.glideTimer = s.isGliding
-            ? 70 + Math.random() * 80
-            : 120 + Math.random() * 100;
+            ? 90 + Math.random() * 120   // Long tranquil glides
+            : 60 + Math.random() * 70;   // Graceful flapping bursts
         }
+
+        s.wobblePhase += 0.025;
+        // Subtle vertical thermal drift
+        const thermal = Math.sin(s.wobblePhase) * 0.18;
 
         if (!s.isGliding) {
           s.flapPhase += s.flapSpeed;
-          s.vy = Math.cos(s.flapPhase) * 0.2;
+          s.vy = Math.cos(s.flapPhase) * 0.25 + thermal;
+          s.tilt = Math.sin(s.flapPhase) * 0.04;
         } else {
-          s.flapPhase = Math.sin(s.flapPhase) * 0.08;
-          s.vy = 0.03;
+          // Gentle gliding roll & steady drift
+          s.flapPhase = Math.sin(s.wobblePhase * 1.5) * 0.08;
+          s.vy = 0.04 + thermal;
+          s.tilt = Math.sin(s.wobblePhase) * 0.03;
         }
 
         s.y += s.vy;
 
-        if (s.x < -60) {
-          s.x = cssWidth * 0.45 + Math.random() * 60;
-          s.y = cssHeight * 0.35 + Math.random() * (cssHeight * 0.12);
+        // Respawn off-screen on the right to preserve continuous natural flock flow
+        if (s.x < -s.scale * 2.5 - 50) {
+          s.x = cssWidth + 50 + Math.random() * 140;
+          s.y = cssHeight * 0.18 + Math.random() * (cssHeight * 0.24);
           s.baseY = s.y;
-          s.isGliding = false;
-          s.glideTimer = 90 + Math.random() * 60;
+          s.isGliding = Math.random() > 0.4;
+          s.glideTimer = 70 + Math.random() * 100;
         }
 
         ctx.save();
         const drawX = s.x + pX * (s.depth * 0.25);
         const drawY = s.y + pY * (s.depth * 0.18);
         ctx.translate(drawX, drawY);
+        if (s.tilt) ctx.rotate(s.tilt);
 
         const sz = s.scale;
-        const wingBeat = s.isGliding ? 0.08 : Math.sin(s.flapPhase);
+        const beat = s.isGliding ? -0.1 : Math.sin(s.flapPhase);
 
-        ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
-        ctx.strokeStyle = `rgba(240, 245, 250, ${s.opacity})`;
+        // Wing sweep-back and vertical displacement (aerial 2.5D perspective)
+        const farSweepX = sz * (0.58 + beat * 0.1);
+        const farLiftY = sz * (0.8 + beat * 0.55);
+        const nearSweepX = sz * (0.54 + beat * 0.08);
+        const nearDropY = sz * (0.8 - beat * 0.55);
 
-        // Body
+        // 1. LEGS (Slender dusky ochre, natural tucked length)
+        ctx.save();
+        ctx.strokeStyle = `rgba(165, 125, 75, ${s.opacity * 0.65})`;
+        ctx.lineWidth = Math.max(0.7, sz * 0.045);
+        ctx.lineCap = "round";
         ctx.beginPath();
-        ctx.ellipse(0, 0, sz * 0.65, sz * 0.18, -0.05, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Neck & Beak
-        ctx.beginPath();
-        ctx.moveTo(-sz * 0.5, 0);
-        ctx.quadraticCurveTo(-sz * 0.9, -sz * 0.08, -sz * 1.3, -sz * 0.02);
-        ctx.lineTo(-sz * 1.6, -sz * 0.01);
-        ctx.lineTo(-sz * 1.25, sz * 0.04);
-        ctx.closePath();
-        ctx.fill();
-
-        // Amber Beak
-        ctx.fillStyle = `rgba(245, 180, 75, ${s.opacity})`;
-        ctx.beginPath();
-        ctx.moveTo(-sz * 1.3, -sz * 0.02);
-        ctx.lineTo(-sz * 1.6, -sz * 0.01);
-        ctx.lineTo(-sz * 1.3, sz * 0.03);
-        ctx.closePath();
-        ctx.fill();
-
-        // Trailing Legs
-        ctx.strokeStyle = `rgba(215, 155, 70, ${s.opacity * 0.8})`;
-        ctx.lineWidth = 0.9;
-        ctx.beginPath();
-        ctx.moveTo(sz * 0.5, 0);
-        ctx.lineTo(sz * 1.4, sz * 0.08);
-        ctx.moveTo(sz * 0.45, sz * 0.04);
-        ctx.lineTo(sz * 1.35, sz * 0.14);
+        // Upper leg & foot
+        ctx.moveTo(sz * 0.3, sz * 0.03);
+        ctx.lineTo(sz * 0.65, sz * 0.06);
+        ctx.lineTo(sz * 0.95, sz * 0.08);
+        // Lower leg & foot
+        ctx.moveTo(sz * 0.28, sz * 0.05);
+        ctx.lineTo(sz * 0.62, sz * 0.09);
+        ctx.lineTo(sz * 0.9, sz * 0.12);
         ctx.stroke();
+        ctx.restore();
 
-        // Wings
-        ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
-        const wingSpan = sz * 1.25;
-        const wingTipY = wingBeat * wingSpan * 0.9;
-        const wingElbowY = wingBeat * wingSpan * 0.45;
-
-        // Foreground Wing
+        // 2. FAR WING (Top Wing - behind body)
+        // White covert base
+        ctx.save();
+        ctx.fillStyle = `rgba(230, 238, 248, ${s.opacity * 0.95})`;
         ctx.beginPath();
-        ctx.moveTo(-sz * 0.1, -sz * 0.05);
-        ctx.quadraticCurveTo(sz * 0.1, wingElbowY, sz * 0.35, wingTipY);
+        ctx.moveTo(-sz * 0.05, -sz * 0.04);
+        ctx.bezierCurveTo(
+          sz * 0.05, -farLiftY * 0.5,
+          sz * 0.2, -farLiftY * 0.8,
+          farSweepX, -farLiftY
+        );
         ctx.quadraticCurveTo(
-          sz * 0.15,
-          wingTipY * 0.7 + sz * 0.2,
-          sz * 0.3,
-          sz * 0.05
+          farSweepX * 0.65, -farLiftY * 0.35,
+          sz * 0.22, -sz * 0.02
         );
         ctx.closePath();
         ctx.fill();
 
-        // Background Wing
-        const backTipY = -wingBeat * wingSpan * 0.75;
-        const backElbowY = -wingBeat * wingSpan * 0.35;
+        // Dark primary flight feathers along trailing edge & wingtip with feather notches
+        ctx.fillStyle = `rgba(32, 38, 48, ${s.opacity * 0.92})`;
         ctx.beginPath();
-        ctx.moveTo(-sz * 0.15, -sz * 0.08);
-        ctx.quadraticCurveTo(-sz * 0.05, backElbowY, sz * 0.15, backTipY);
-        ctx.quadraticCurveTo(sz * 0.05, backTipY * 0.6, sz * 0.2, -sz * 0.02);
+        ctx.moveTo(sz * 0.22, -farLiftY * 0.78);
+        ctx.lineTo(farSweepX, -farLiftY);
+        ctx.lineTo(farSweepX * 0.92, -farLiftY * 0.75);
+        ctx.lineTo(farSweepX * 0.88, -farLiftY * 0.6);
+        ctx.quadraticCurveTo(
+          farSweepX * 0.7, -farLiftY * 0.32,
+          sz * 0.22, -sz * 0.02
+        );
+        ctx.quadraticCurveTo(
+          farSweepX * 0.42, -farLiftY * 0.35,
+          sz * 0.22, -farLiftY * 0.78
+        );
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // 3. TAIL FEATHERS
+        ctx.save();
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
+        ctx.beginPath();
+        ctx.moveTo(sz * 0.2, -sz * 0.02);
+        ctx.lineTo(sz * 0.52, sz * 0.01);
+        ctx.lineTo(sz * 0.44, sz * 0.06);
+        ctx.lineTo(sz * 0.16, sz * 0.04);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // 4. TORSO / BODY (Aerodynamic sculpted breast & belly)
+        ctx.save();
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
+        ctx.beginPath();
+        ctx.moveTo(-sz * 0.35, -sz * 0.01);
+        ctx.quadraticCurveTo(-sz * 0.05, -sz * 0.08, sz * 0.28, -sz * 0.02);
+        ctx.lineTo(sz * 0.25, sz * 0.05);
+        ctx.quadraticCurveTo(-sz * 0.05, sz * 0.1, -sz * 0.35, sz * 0.03);
         ctx.closePath();
         ctx.fill();
 
-        // Dark feather wingtips
-        ctx.fillStyle = `rgba(35, 40, 50, ${s.opacity * 0.65})`;
+        // Soft subtle underbelly shading for 3D depth
+        const grad = ctx.createLinearGradient(0, -sz * 0.05, 0, sz * 0.1);
+        grad.addColorStop(0, `rgba(255, 255, 255, ${s.opacity})`);
+        grad.addColorStop(1, `rgba(220, 230, 242, ${s.opacity * 0.55})`);
+        ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.arc(sz * 0.35, wingTipY, 1.3, 0, Math.PI * 2);
+        ctx.moveTo(-sz * 0.32, sz * 0.02);
+        ctx.quadraticCurveTo(-sz * 0.05, sz * 0.1, sz * 0.25, sz * 0.05);
+        ctx.lineTo(sz * 0.22, sz * 0.01);
+        ctx.quadraticCurveTo(-sz * 0.05, sz * 0.04, -sz * 0.32, sz * 0.02);
+        ctx.closePath();
         ctx.fill();
+        ctx.restore();
+
+        // 5. NECK, HEAD & BEAK (Graceful S-curved extension)
+        ctx.save();
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
+        ctx.beginPath();
+        ctx.moveTo(-sz * 0.3, -sz * 0.03);
+        ctx.bezierCurveTo(
+          -sz * 0.55, -sz * 0.065,
+          -sz * 0.72, -sz * 0.045,
+          -sz * 0.88, -sz * 0.012
+        );
+        ctx.lineTo(-sz * 0.94, 0);
+        ctx.bezierCurveTo(
+          -sz * 0.72, sz * 0.028,
+          -sz * 0.52, sz * 0.025,
+          -sz * 0.3, sz * 0.025
+        );
+        ctx.closePath();
+        ctx.fill();
+
+        // Amber beak
+        ctx.fillStyle = `rgba(242, 168, 48, ${s.opacity})`;
+        ctx.beginPath();
+        ctx.moveTo(-sz * 0.88, -sz * 0.012);
+        ctx.lineTo(-sz * 1.25, 0);
+        ctx.lineTo(-sz * 0.88, sz * 0.015);
+        ctx.closePath();
+        ctx.fill();
+
+        // Eye speck
+        ctx.fillStyle = `rgba(32, 38, 48, ${s.opacity * 0.85})`;
+        ctx.beginPath();
+        ctx.arc(-sz * 0.82, -sz * 0.005, Math.max(0.5, sz * 0.028), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // 6. FOREGROUND WING (Near Wing - sweeping camber & black flight feathers)
+        ctx.save();
+        // White covert
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
+        ctx.beginPath();
+        ctx.moveTo(-sz * 0.05, sz * 0.01);
+        ctx.bezierCurveTo(
+          sz * 0.08, nearDropY * 0.5,
+          sz * 0.22, nearDropY * 0.8,
+          nearSweepX, nearDropY
+        );
+        ctx.quadraticCurveTo(
+          nearSweepX * 0.65, nearDropY * 0.35,
+          sz * 0.18, sz * 0.05
+        );
+        ctx.closePath();
+        ctx.fill();
+
+        // Black primary flight feathers with feather notches
+        ctx.fillStyle = `rgba(32, 38, 48, ${s.opacity * 0.95})`;
+        ctx.beginPath();
+        ctx.moveTo(sz * 0.25, nearDropY * 0.78);
+        ctx.lineTo(nearSweepX, nearDropY);
+        ctx.lineTo(nearSweepX * 0.92, nearDropY * 0.75);
+        ctx.lineTo(nearSweepX * 0.88, nearDropY * 0.6);
+        ctx.quadraticCurveTo(
+          nearSweepX * 0.7, nearDropY * 0.32,
+          sz * 0.18, sz * 0.05
+        );
+        ctx.quadraticCurveTo(
+          nearSweepX * 0.42, nearDropY * 0.35,
+          sz * 0.25, nearDropY * 0.78
+        );
+        ctx.closePath();
+        ctx.fill();
+
+        // Sunlit rim highlight on leading edge
+        ctx.strokeStyle = `rgba(255, 255, 255, ${s.opacity * 0.9})`;
+        ctx.lineWidth = Math.max(0.65, sz * 0.048);
+        ctx.beginPath();
+        ctx.moveTo(-sz * 0.05, sz * 0.01);
+        ctx.bezierCurveTo(
+          sz * 0.08, nearDropY * 0.5,
+          sz * 0.22, nearDropY * 0.8,
+          nearSweepX, nearDropY
+        );
+        ctx.stroke();
+        ctx.restore();
 
         ctx.restore();
       }
