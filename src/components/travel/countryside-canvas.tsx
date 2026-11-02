@@ -61,14 +61,6 @@ interface SunMote {
   pulse: number;
 }
 
-interface RiverGlint {
-  x: number;
-  y: number;
-  len: number;
-  speed: number;
-  alpha: number;
-  phase: number;
-}
 
 interface CountrysideCanvasProps {
   parallaxX?: number;
@@ -161,15 +153,6 @@ export function CountrysideCanvas({
     let ripples: WaterRipple[] = [];
     let splashes: SplashParticle[] = [];
 
-    // 4. RIVER SURFACE GLINTS & SUNLIGHT PARTICLES
-    let glints: RiverGlint[] = Array.from({ length: 22 }, () => ({
-      x: cssWidth * (0.28 + Math.random() * 0.22),
-      y: cssHeight * (0.52 + Math.random() * 0.42),
-      len: 10 + Math.random() * 24,
-      speed: 0.025 + Math.random() * 0.03,
-      alpha: 0.3 + Math.random() * 0.45,
-      phase: Math.random() * Math.PI * 2,
-    }));
 
     let motes: SunMote[] = Array.from({ length: 25 }, () => ({
       x: Math.random() * cssWidth,
@@ -261,102 +244,6 @@ export function CountrysideCanvas({
         ctx.restore();
       }
 
-      // Ambient river sunlight glints
-      for (const g of glints) {
-        g.phase += g.speed;
-        const currentAlpha = Math.max(0, Math.sin(g.phase)) * g.alpha;
-        if (currentAlpha > 0.01) {
-          ctx.save();
-          ctx.strokeStyle = `rgba(255, 240, 185, ${currentAlpha * 0.65})`;
-          ctx.lineWidth = 1.2;
-          ctx.beginPath();
-          const rx = g.x + pX * 0.15;
-          const ry = g.y + pY * 0.1;
-          ctx.moveTo(rx - g.len * 0.5, ry);
-          ctx.lineTo(rx + g.len * 0.5, ry);
-          ctx.stroke();
-          ctx.restore();
-        }
-      }
-
-      // =========================================================================
-      // 2. SAMPAN BOAT ROWING MOVEMENT & WATER WAKE (AERIAL PERSPECTIVE)
-      // =========================================================================
-      // In the new aerial painting, the boat is situated in the lower-left river bend
-      const boatBaseX = cssWidth * 0.285;
-      const boatBaseY = cssHeight * 0.815;
-
-      const rowCycle = time * 1.5;
-      const boatDriftX = Math.sin(time * 0.35) * 6;
-      const boatBobY = Math.sin(rowCycle * 2) * 1.4;
-      const boatTilt = Math.sin(rowCycle * 2) * 0.025;
-
-      const boatX = boatBaseX + boatDriftX + pX * 0.15;
-      const boatY = boatBaseY + boatBobY + pY * 0.1;
-
-      // Emit wake ripples behind the boat
-      if (Math.sin(rowCycle * 2) > 0.93 && Math.random() < 0.3) {
-        ripples.push({
-          x: boatX - 18,
-          y: boatY + 8,
-          radius: 3,
-          maxRadius: 26,
-          speed: 0.35,
-          alpha: 0.45,
-        });
-        ripples.push({
-          x: boatX + 16,
-          y: boatY + 12,
-          radius: 3,
-          maxRadius: 22,
-          speed: 0.3,
-          alpha: 0.35,
-        });
-      }
-
-      // Dynamic rowing oar and water wake
-      ctx.save();
-      ctx.translate(boatX, boatY);
-      ctx.rotate(boatTilt);
-
-      // Water displacement ripple around the wooden hull
-      ctx.strokeStyle = "rgba(255, 245, 210, 0.24)";
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.ellipse(0, 10, 42, 12, -0.2, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // Dynamic rowing oar sweeping in water (điệu chèo quạt nước)
-      const oarAngle = -0.45 + Math.sin(rowCycle * 2) * 0.28;
-      const oarLength = 40;
-      const oarPivotX = -6;
-      const oarPivotY = 2;
-      const oarTipX = oarPivotX - Math.cos(oarAngle) * oarLength;
-      const oarTipY = oarPivotY + Math.sin(oarAngle) * oarLength * 0.55;
-
-      // Oar shaft
-      ctx.strokeStyle = "rgba(75, 52, 30, 0.95)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(oarPivotX + 4, oarPivotY - 6);
-      ctx.lineTo(oarTipX, oarTipY);
-      ctx.stroke();
-
-      // Oar blade dipping in water
-      ctx.fillStyle = "rgba(90, 60, 35, 0.95)";
-      ctx.beginPath();
-      ctx.ellipse(oarTipX, oarTipY, 6, 2.8, oarAngle, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Water splash when oar pushes water
-      if (Math.sin(rowCycle * 2) > 0.45) {
-        ctx.fillStyle = "rgba(255, 255, 235, 0.6)";
-        ctx.beginPath();
-        ctx.arc(oarTipX, oarTipY, 2.4, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.restore();
 
       // =========================================================================
       // 3. JUMPING FISH IN THE JADE RIVER (CÁ NHẢY TUNG LÊN MẶT NƯỚC)
