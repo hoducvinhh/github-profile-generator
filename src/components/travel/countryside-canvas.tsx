@@ -61,51 +61,82 @@ interface SunMote {
   pulse: number;
 }
 
-interface RiverWavelet {
-  y: number;
-  speed: number;
-  offsetNorm: number;
-  length: number;
-  phase: number;
-  isSunlit: boolean;
+interface RiverStreamlet {
+  t: number;            // 0.0 to 1.0 along the river spline
+  speed: number;        // drift speed along river (gentle, calm)
+  lateral: number;      // -0.65 to +0.65 across the channel
+  lengthT: number;      // length of the streamlet in t
+  phase: number;        // lateral wave wobble phase
+  wobbleSpeed: number;  // wave undulation speed
+  maxAlpha: number;     // peak opacity
 }
 
-interface RiverSparkle {
-  y: number;
-  speed: number;
-  offsetNorm: number;
-  radius: number;
-  phase: number;
-  twinkleSpeed: number;
-}
-
-// Meandering River Channel Profile in 1376x768 Artwork Coordinates [y, leftBank, rightBank]
-const RIVER_PROFILE: [number, number, number][] = [
-  [380, 520, 620],
-  [420, 580, 700],
-  [460, 510, 660],
-  [500, 420, 600],
-  [540, 350, 590],
-  [580, 320, 640],
-  [620, 280, 720],
-  [660, 240, 800],
-  [700, 200, 890],
-  [750, 160, 980],
+// Catmull-Rom control points tracing the river in 1376x768 artwork
+const RIVER_CONTROL_POINTS = [
+  { x: 580, y: 310 }, // 0: Distant karst valley origin
+  { x: 500, y: 335 }, // 1: Flowing down
+  { x: 450, y: 360 }, // 2: Curve 1 (left bank reach)
+  { x: 530, y: 395 }, // 3: Turning right
+  { x: 605, y: 425 }, // 4: Curve 2 (rightmost bend apex)
+  { x: 560, y: 475 }, // 5: Returning to center
+  { x: 460, y: 530 }, // 6: Curve 3 (past the water buffalo)
+  { x: 420, y: 590 }, // 7: Entering wide bend
+  { x: 450, y: 645 }, // 8: Flowing beside the sampan boat
+  { x: 510, y: 700 }, // 9: Lower sparkling morning pool
+  { x: 560, y: 768 }, // 10: Exiting bottom foreground
 ];
 
-function getRiverChannel(y: number): [number, number] {
-  for (let i = 0; i < RIVER_PROFILE.length - 1; i++) {
-    const [y0, l0, r0] = RIVER_PROFILE[i];
-    const [y1, l1, r1] = RIVER_PROFILE[i + 1];
-    if (y >= y0 && y <= y1) {
-      const f = (y - y0) / (y1 - y0);
-      const s = f * f * (3 - 2 * f);
-      return [l0 + (l1 - l0) * s, r0 + (r1 - r0) * s];
-    }
-  }
-  if (y < RIVER_PROFILE[0][0]) return [RIVER_PROFILE[0][1], RIVER_PROFILE[0][2]];
-  const last = RIVER_PROFILE[RIVER_PROFILE.length - 1];
-  return [last[1], last[2]];
+function evalRiverSpline(t: number) {
+  const pts = RIVER_CONTROL_POINTS;
+  const n = pts.length;
+  const clampedT = Math.max(0, Math.min(0.999, t));
+  const fIdx = clampedT * (n - 1);
+  const idx = Math.min(Math.floor(fIdx), n - 2);
+  const u = fIdx - idx;
+
+  const p0 = pts[Math.max(0, idx - 1)];
+  const p1 = pts[idx];
+  const p2 = pts[Math.min(n - 1, idx + 1)];
+  const p3 = pts[Math.min(n - 1, idx + 2)];
+
+  // Catmull-Rom Position
+  const posX =
+    0.5 *
+    (2 * p1.x +
+      (-p0.x + p2.x) * u +
+      (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * u * u +
+      (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * u * u * u);
+
+  const posY =
+    0.5 *
+    (2 * p1.y +
+      (-p0.y + p2.y) * u +
+      (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * u * u +
+      (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * u * u * u);
+
+  // Tangent Vector
+  const tanX =
+    0.5 *
+    (-p0.x +
+      p2.x +
+      2 * (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * u +
+      3 * (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * u * u);
+
+  const tanY =
+    0.5 *
+    (-p0.y +
+      p2.y +
+      2 * (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * u +
+      3 * (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * u * u);
+
+  const len = Math.hypot(tanX, tanY) || 1;
+  const nx = -tanY / len;
+  const ny = tanX / len;
+
+  // River half-width expands from 8px at distant valley to 72px in foreground pool
+  const halfWidth = 8 + clampedT * 70;
+
+  return { posX, posY, nx, ny, halfWidth };
 }
 
 
@@ -200,27 +231,16 @@ export function CountrysideCanvas({
     let ripples: WaterRipple[] = [];
     let splashes: SplashParticle[] = [];
 
-    // 4. FLOWING RIVER CURRENT WAVELETS & SUNLIGHT SPARKLES
-    let wavelets: RiverWavelet[] = Array.from({ length: 45 }, () => {
-      const y = 380 + Math.random() * 370;
-      const offsetNorm = 0.12 + Math.random() * 0.76;
-      return {
-        y,
-        speed: 0.45 + Math.random() * 0.45,
-        offsetNorm,
-        length: 14 + Math.random() * 20,
-        phase: Math.random() * Math.PI * 2,
-        isSunlit: offsetNorm >= 0.36 && offsetNorm <= 0.84,
-      };
-    });
-
-    let sparkles: RiverSparkle[] = Array.from({ length: 34 }, () => ({
-      y: 400 + Math.random() * 340,
-      speed: 0.35 + Math.random() * 0.4,
-      offsetNorm: 0.42 + Math.random() * 0.36,
-      radius: 1.2 + Math.random() * 1.8,
+    // 4. GENTLE FLOWING RIVER STREAMLETS (DÒNG CHẢY UỐN LƯỢN MỀM MẠI)
+    const STREAMLET_COUNT = 38;
+    const streamlets: RiverStreamlet[] = Array.from({ length: STREAMLET_COUNT }, (_, i) => ({
+      t: i / STREAMLET_COUNT + Math.random() * 0.04,
+      speed: 0.00045 + Math.random() * 0.00045,
+      lateral: (Math.random() - 0.5) * 1.3,
+      lengthT: 0.035 + Math.random() * 0.035,
       phase: Math.random() * Math.PI * 2,
-      twinkleSpeed: 2.2 + Math.random() * 2.8,
+      wobbleSpeed: 1.2 + Math.random() * 0.8,
+      maxAlpha: 0.14 + Math.random() * 0.16,
     }));
 
     let motes: SunMote[] = Array.from({ length: 25 }, () => ({
@@ -256,7 +276,7 @@ export function CountrysideCanvas({
       const pX = currentPX;
       const pY = currentPY;
 
-      // Coordinate mapping from 1376x768 artwork to screen space (locked with bg-cover bg-center)
+      // Coordinate mapping for the 1376x768 landscape background (bg-cover bg-center with inset: -14px)
       const bgPad = 14;
       const contW = cssWidth + bgPad * 2;
       const contH = cssHeight + bgPad * 2;
@@ -271,79 +291,104 @@ export function CountrysideCanvas({
       const imgScreenOriginY = -bgPad + (contH - renderedImgH) * 0.5 - pY * 0.5;
 
       // =========================================================================
-      // 1. FLOWING RIVER CURRENT & SUNLIGHT CAUSTICS (DÒNG SÔNG CHẢY ÊM ĐỀM)
+      // 1. GENTLE FLOWING RIVER CURRENTS (DÒNG NƯỚC CHẢY NHẸ NHÀNG, MỀM MẠI)
       // =========================================================================
-      // 1A. Flowing Water Wavelets drifting downriver along the natural curve
-      for (const w of wavelets) {
-        w.y += w.speed * (0.75 + (w.y - 380) / 420);
-        if (w.y > 750) {
-          w.y = 380 + Math.random() * 20;
-          w.offsetNorm = 0.12 + Math.random() * 0.76;
-          w.isSunlit = w.offsetNorm >= 0.36 && w.offsetNorm <= 0.84;
+      for (const s of streamlets) {
+        // Very slow, peaceful drift from mountains to foreground pool
+        s.t += s.speed;
+        if (s.t > 0.98) {
+          s.t = 0.01 + Math.random() * 0.06;
+          s.lateral = (Math.random() - 0.5) * 1.3;
+          s.speed = 0.00045 + Math.random() * 0.00045;
+          s.maxAlpha = 0.14 + Math.random() * 0.16;
         }
 
-        const [lb, rb] = getRiverChannel(w.y);
-        const imgX = lb + w.offsetNorm * (rb - lb);
-        const imgY = w.y;
+        // Smooth sinusoidal fade-in / fade-out envelope along the river
+        const envelope = Math.sin(s.t * Math.PI);
+        const alpha = s.maxAlpha * envelope;
+        if (alpha < 0.01) continue;
 
-        const sx = imgScreenOriginX + imgX * bgScale;
-        const sy = imgScreenOriginY + imgY * bgScale;
-
-        const fade = Math.sin(((w.y - 380) / 370) * Math.PI);
-        const alpha = Math.max(0, fade) * (w.isSunlit ? 0.38 : 0.22);
-        if (alpha < 0.02) continue;
-
-        const rx = (w.length * 0.5 + (w.y - 380) * 0.035) * bgScale;
-        const ry = Math.max(1.5, (2.0 + (w.y - 380) * 0.009) * bgScale);
-        const undulate = Math.sin(time * 3.2 + w.phase) * (0.9 * bgScale);
+        const steps = 7;
+        const dt = s.lengthT / steps;
 
         ctx.save();
-        ctx.strokeStyle = w.isSunlit
-          ? `rgba(255, 248, 210, ${alpha})`
-          : `rgba(180, 235, 215, ${alpha * 0.75})`;
-        ctx.lineWidth = Math.max(0.8, 1.1 * bgScale);
         ctx.beginPath();
-        // Gentle downstream elliptical ripple curve
-        ctx.ellipse(sx, sy + undulate, rx, ry, -0.06, 0, Math.PI * 2);
+
+        for (let step = 0; step <= steps; step++) {
+          const curT = s.t + step * dt;
+          if (curT > 0.999) break;
+
+          const { posX, posY, nx, ny, halfWidth } = evalRiverSpline(curT);
+
+          // Gentle lateral wave undulation
+          const wave = Math.sin(time * s.wobbleSpeed + s.phase + step * 0.45) * (1.2 * (0.4 + curT * 0.8));
+          let latOffset = s.lateral * halfWidth + wave;
+
+          // Gently guide water flow around the boat (around x: 390, y: 625)
+          const imgX = posX + nx * latOffset;
+          const imgY = posY + ny * latOffset;
+          const distToBoat = Math.hypot(imgX - 390, imgY - 625);
+          if (distToBoat < 32) {
+            latOffset += (32 - distToBoat) * 0.7;
+          }
+
+          const finalImgX = posX + nx * latOffset;
+          const finalImgY = posY + ny * latOffset;
+
+          const sx = imgScreenOriginX + finalImgX * bgScale;
+          const sy = imgScreenOriginY + finalImgY * bgScale;
+
+          if (step === 0) {
+            ctx.moveTo(sx, sy);
+          } else {
+            ctx.lineTo(sx, sy);
+          }
+        }
+
+        // Color tone matches local river lighting
+        const isSunlit = s.t > 0.45 && s.lateral > -0.15;
+        if (isSunlit) {
+          // Soft golden dawn light shimmering on flowing water
+          ctx.strokeStyle = `rgba(255, 248, 215, ${alpha * 0.9})`;
+        } else {
+          // Translucent jade emerald river current
+          ctx.strokeStyle = `rgba(180, 235, 215, ${alpha * 0.7})`;
+        }
+
+        ctx.lineWidth = Math.max(0.65, (0.65 + s.t * 1.5) * bgScale);
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
         ctx.stroke();
         ctx.restore();
       }
 
-      // 1B. Shimmering Sunlight Sparkles drifting on the golden reflection
-      for (const sp of sparkles) {
-        sp.y += sp.speed * (0.65 + (sp.y - 380) / 450);
-        if (sp.y > 745) {
-          sp.y = 400 + Math.random() * 25;
-          sp.offsetNorm = 0.42 + Math.random() * 0.36;
+      // Ambient sparkling river glints in the sunlit morning reflection
+      for (let i = 0; i < 8; i++) {
+        const glintPhase = time * 1.8 + i * 1.1;
+        const gAlpha = Math.max(0, Math.sin(glintPhase)) * 0.28;
+        if (gAlpha > 0.02) {
+          const gt = 0.65 + i * 0.04;
+          const { posX, posY, nx, ny, halfWidth } = evalRiverSpline(gt);
+          const gLat = 0.15 + (i % 3) * 0.25;
+          const gx = posX + nx * (gLat * halfWidth) + Math.sin(time * 0.6 + i) * 6;
+          const gy = posY + ny * (gLat * halfWidth) + Math.cos(time * 0.5 + i) * 3;
+
+          const sx = imgScreenOriginX + gx * bgScale;
+          const sy = imgScreenOriginY + gy * bgScale;
+
+          ctx.save();
+          ctx.strokeStyle = `rgba(255, 250, 220, ${gAlpha})`;
+          ctx.lineWidth = 1.0 * bgScale;
+          ctx.beginPath();
+          // Gentle curved water ripple
+          ctx.ellipse(sx, sy, 7 * bgScale, 2.5 * bgScale, -0.1, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
         }
-
-        const [lb, rb] = getRiverChannel(sp.y);
-        const imgX = lb + sp.offsetNorm * (rb - lb);
-        const imgY = sp.y;
-
-        const sx = imgScreenOriginX + imgX * bgScale;
-        const sy = imgScreenOriginY + imgY * bgScale;
-
-        const fade = Math.sin(((sp.y - 380) / 370) * Math.PI);
-        const twinkle = Math.pow(Math.max(0, Math.sin(time * sp.twinkleSpeed + sp.phase)), 3);
-        const alpha = twinkle * fade * 0.75;
-        if (alpha < 0.03) continue;
-
-        const r = sp.radius * bgScale;
-        ctx.save();
-        const spGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * 1.6);
-        spGrad.addColorStop(0, `rgba(255, 255, 245, ${alpha})`);
-        spGrad.addColorStop(0.5, `rgba(255, 248, 195, ${alpha * 0.65})`);
-        spGrad.addColorStop(1, `rgba(255, 245, 180, 0)`);
-        ctx.fillStyle = spGrad;
-        ctx.beginPath();
-        ctx.arc(sx, sy, r * 1.6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
       }
 
       // =========================================================================
-      // 2. EXPANDING WATER RIPPLES & JUMPING FISH
+      // 2. WATER RIPPLES & RIVER SHIMMER
       // =========================================================================
       for (let i = ripples.length - 1; i >= 0; i--) {
         const rip = ripples[i];
@@ -399,28 +444,25 @@ export function CountrysideCanvas({
         ctx.restore();
       }
 
+
       // =========================================================================
       // 3. JUMPING FISH IN THE JADE RIVER (CÁ NHẢY TUNG LÊN MẶT NƯỚC)
       // =========================================================================
       nextFishTime -= 1;
       if (nextFishTime <= 0 && !fish.active) {
-        // Spawn inside the lower-mid river channel in image coordinates
-        const fishY = 560 + Math.random() * 120;
-        const [lb, rb] = getRiverChannel(fishY);
-        const fishX = lb + (0.35 + Math.random() * 0.3) * (rb - lb);
-
-        const spawnX = imgScreenOriginX + fishX * bgScale;
-        const spawnY = imgScreenOriginY + fishY * bgScale;
+        // Spawn fish in mid-river curve (x: 0.35 - 0.45, y: 0.56 - 0.68)
+        const spawnX = cssWidth * (0.36 + Math.random() * 0.1);
+        const spawnY = cssHeight * (0.58 + Math.random() * 0.1);
         fish = {
           active: true,
           x: spawnX,
           y: spawnY,
           startX: spawnX,
           startY: spawnY,
-          vx: (Math.random() - 0.5) * 1.6 * bgScale,
-          vy: -(6.0 + Math.random() * 2.2) * bgScale,
-          gravity: 0.32 * bgScale,
-          scale: (6.5 + Math.random() * 3.5) * bgScale,
+          vx: (Math.random() - 0.5) * 1.6,
+          vy: -(6.0 + Math.random() * 2.2),
+          gravity: 0.32,
+          scale: 6.5 + Math.random() * 3.5,
           alpha: 1,
           rotation: 0,
         };
