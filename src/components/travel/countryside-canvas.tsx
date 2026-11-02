@@ -454,46 +454,244 @@ export function CountrysideCanvas({
       }
 
       // =========================================================================
-      // 4. KITE SOARING IN WIND (CON DIỀU BAY TRÊN BỜ ĐÊ)
+      // 4. KITE SOARING IN WIND (CON DIỀU VÀ ĐỨA TRẺ THẢ DIỀU TRÊN BỜ ĐÊ)
       // =========================================================================
-      // In the new painting, the kite and children are around (x: ~0.58, y: ~0.74) to (x: ~0.64, y: ~0.60)
-      const kiteOriginX = cssWidth * 0.58 + parallaxX * 0.2;
-      const kiteOriginY = cssHeight * 0.74 + parallaxY * 0.15;
+      // The child's raised hand is situated at ~ (0.5836, 0.7083)
+      // The soaring kite is centered at ~ (0.6352, 0.5976)
+      const baseChildHandX = cssWidth * 0.5836;
+      const baseChildHandY = cssHeight * 0.7083;
+      const baseKiteX = cssWidth * 0.6352;
+      const baseKiteY = cssHeight * 0.5976;
 
-      const kiteSwayX = Math.sin(time * 1.4) * 16;
-      const kiteSwayY = Math.cos(time * 1.0) * 10;
-      const kX = cssWidth * 0.645 + kiteSwayX + parallaxX * 0.25;
-      const kY = cssHeight * 0.595 + kiteSwayY + parallaxY * 0.2;
+      // Match background layer parallax displacement (-mouseOffset * 0.5)
+      const handX = baseChildHandX - parallaxX * 0.5;
+      const handY = baseChildHandY - parallaxY * 0.5;
 
-      // Curved string
+      const bgKiteX = baseKiteX - parallaxX * 0.5;
+      const bgKiteY = baseKiteY - parallaxY * 0.5;
+
+      // Soft rice-paddy blending patches covering static background kite elements
       ctx.save();
-      ctx.strokeStyle = "rgba(255, 255, 240, 0.5)";
-      ctx.lineWidth = 0.9;
+      const patchGrad = ctx.createRadialGradient(
+        bgKiteX, bgKiteY, 4,
+        bgKiteX, bgKiteY, 26
+      );
+      patchGrad.addColorStop(0, "rgba(150, 172, 45, 0.96)");
+      patchGrad.addColorStop(0.65, "rgba(142, 165, 40, 0.92)");
+      patchGrad.addColorStop(0.9, "rgba(135, 158, 35, 0.6)");
+      patchGrad.addColorStop(1, "rgba(135, 158, 35, 0)");
+      ctx.fillStyle = patchGrad;
       ctx.beginPath();
-      ctx.moveTo(kiteOriginX, kiteOriginY - 8);
-      const sagX = (kiteOriginX + kX) * 0.5 + Math.sin(time * 0.8) * 8;
-      const sagY = (kiteOriginY + kY) * 0.5 + 16;
-      ctx.quadraticCurveTo(sagX, sagY, kX, kY);
+      ctx.ellipse(bgKiteX, bgKiteY, 26, 22, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      const tailGrad = ctx.createRadialGradient(
+        bgKiteX + 30, bgKiteY + 22, 4,
+        bgKiteX + 30, bgKiteY + 22, 24
+      );
+      tailGrad.addColorStop(0, "rgba(125, 152, 35, 0.95)");
+      tailGrad.addColorStop(0.7, "rgba(115, 142, 30, 0.7)");
+      tailGrad.addColorStop(1, "rgba(115, 142, 30, 0)");
+      ctx.fillStyle = tailGrad;
+      ctx.beginPath();
+      ctx.ellipse(bgKiteX + 30, bgKiteY + 22, 24, 14, 0.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Organic wind gust physics
+      const gust = time * 1.6;
+      const windSwayX = Math.sin(gust) * 7 + Math.sin(time * 0.8) * 3;
+      const windBobY = Math.cos(gust * 1.1) * 5;
+      const windTilt = Math.sin(gust) * 0.12 + Math.sin(time * 2.8) * 0.04;
+
+      const kX = baseKiteX + windSwayX - parallaxX * 0.5;
+      const kY = baseKiteY + windBobY - parallaxY * 0.5;
+
+      // Wooden spool handle in child's raised hand
+      ctx.save();
+      ctx.translate(handX, handY);
+      ctx.fillStyle = "rgba(90, 55, 25, 0.95)";
+      ctx.fillRect(-2, -2, 5, 3);
+      ctx.fillStyle = "rgba(255, 255, 240, 0.95)";
+      ctx.fillRect(-1.5, -1.5, 4, 2);
+      ctx.restore();
+
+      // Dynamic taut kite string connecting child hand to kite bridle
+      ctx.save();
+      ctx.strokeStyle = "rgba(255, 255, 245, 0.85)";
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      ctx.moveTo(handX, handY);
+      const strMidX = (handX + kX) * 0.5 + Math.sin(time * 2.2) * 2.5;
+      const strMidY = (handY + kY) * 0.5 + 8 + Math.cos(time * 1.8) * 2;
+      ctx.quadraticCurveTo(strMidX, strMidY, kX, kY + 6);
+      ctx.stroke();
+
+      // Subtle sunlight glint on string
+      ctx.strokeStyle = "rgba(255, 245, 210, 0.35)";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(handX, handY);
+      ctx.quadraticCurveTo(strMidX, strMidY, kX, kY + 6);
       ctx.stroke();
       ctx.restore();
 
-      // Dynamic fluttering ribbon tail
+      // Full Animated Diamond Kite Soaring in Wind
       ctx.save();
       ctx.translate(kX, kY);
-      ctx.rotate(Math.sin(time * 1.5) * 0.15);
+      ctx.rotate(windTilt);
 
-      ctx.strokeStyle = "rgba(255, 215, 110, 0.9)";
-      ctx.lineWidth = 1.3;
+      const kw = 24;      // Half-width
+      const khTop = 26;   // Top apex distance
+      const khBot = 24;   // Bottom apex distance
+
+      // Soft air/ground ambient shadow
+      ctx.fillStyle = "rgba(20, 35, 15, 0.22)";
       ctx.beginPath();
-      ctx.moveTo(0, 10);
-      let prevTy = 10;
-      for (let s = 1; s <= 5; s++) {
-        const waveX = Math.sin(time * 3.5 - s * 0.7) * (s * 3);
-        const waveY = prevTy + 5;
+      ctx.moveTo(0, -khTop + 6);
+      ctx.lineTo(kw + 3, 6);
+      ctx.lineTo(0, khBot + 6);
+      ctx.lineTo(-kw + 3, 6);
+      ctx.closePath();
+      ctx.fill();
+
+      // Quadrant 1: Top-Left (Vermilion Red)
+      ctx.fillStyle = "#d9383a";
+      ctx.beginPath();
+      ctx.moveTo(0, -khTop);
+      ctx.lineTo(0, 0);
+      ctx.lineTo(-kw, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      // Quadrant 2: Top-Right (Sunlit Amber Orange)
+      ctx.fillStyle = "#f59e0b";
+      ctx.beginPath();
+      ctx.moveTo(0, -khTop);
+      ctx.lineTo(kw, 0);
+      ctx.lineTo(0, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      // Quadrant 3: Bottom-Left (Sky Cyan Blue)
+      ctx.fillStyle = "#0284c7";
+      ctx.beginPath();
+      ctx.moveTo(-kw, 0);
+      ctx.lineTo(0, 0);
+      ctx.lineTo(0, khBot);
+      ctx.closePath();
+      ctx.fill();
+
+      // Quadrant 4: Bottom-Right (Golden Sunlight Yellow)
+      ctx.fillStyle = "#eab308";
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(kw, 0);
+      ctx.lineTo(0, khBot);
+      ctx.closePath();
+      ctx.fill();
+
+      // Morning sunlight sheen across top half
+      const sunSheen = ctx.createLinearGradient(-kw, -khTop, kw, 0);
+      sunSheen.addColorStop(0, "rgba(255, 255, 255, 0.45)");
+      sunSheen.addColorStop(0.5, "rgba(255, 255, 255, 0.15)");
+      sunSheen.addColorStop(1, "rgba(255, 255, 255, 0)");
+      ctx.fillStyle = sunSheen;
+      ctx.beginPath();
+      ctx.moveTo(0, -khTop);
+      ctx.lineTo(kw, 0);
+      ctx.lineTo(0, 0);
+      ctx.lineTo(-kw, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      // Bamboo Frame - Outer outline
+      ctx.strokeStyle = "rgba(35, 20, 10, 0.9)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(0, -khTop);
+      ctx.lineTo(kw, 0);
+      ctx.lineTo(0, khBot);
+      ctx.lineTo(-kw, 0);
+      ctx.closePath();
+      ctx.stroke();
+
+      // Bamboo vertical spine
+      ctx.strokeStyle = "rgba(55, 30, 15, 0.95)";
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(0, -khTop);
+      ctx.lineTo(0, khBot);
+      ctx.stroke();
+
+      // Bamboo curved cross spar
+      ctx.strokeStyle = "rgba(65, 35, 18, 0.95)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-kw, 0);
+      ctx.quadraticCurveTo(0, 2.5, kw, 0);
+      ctx.stroke();
+
+      // Central bamboo knot
+      ctx.fillStyle = "rgba(35, 20, 10, 0.95)";
+      ctx.beginPath();
+      ctx.arc(0, 1, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // White Bridle lines (Dây lèo)
+      ctx.strokeStyle = "rgba(255, 255, 245, 0.85)";
+      ctx.lineWidth = 0.9;
+      ctx.beginPath();
+      ctx.moveTo(0, -khTop * 0.6);
+      ctx.lineTo(0, 7);
+      ctx.moveTo(-kw * 0.6, 0);
+      ctx.lineTo(0, 7);
+      ctx.moveTo(kw * 0.6, 0);
+      ctx.lineTo(0, 7);
+      ctx.stroke();
+
+      // Corner tassels (Tua cánh)
+      const tasselLeft = Math.sin(time * 6.0) * 4;
+      ctx.strokeStyle = "rgba(245, 158, 11, 0.9)";
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      ctx.moveTo(-kw, 0);
+      ctx.lineTo(-kw - 6, tasselLeft);
+      ctx.stroke();
+
+      const tasselRight = Math.sin(time * 6.0 + 1.2) * 4;
+      ctx.beginPath();
+      ctx.moveTo(kw, 0);
+      ctx.lineTo(kw + 6, tasselRight);
+      ctx.stroke();
+
+      // Two Long Flowing Ribbon Tails (Đuôi diều uốn lượn)
+      // Ribbon 1: Amber Silk
+      ctx.strokeStyle = "rgba(245, 158, 11, 0.95)";
+      ctx.lineWidth = 2.0;
+      ctx.beginPath();
+      ctx.moveTo(0, khBot);
+      for (let s = 1; s <= 9; s++) {
+        const tDist = s * 6.5;
+        const waveX = Math.sin(time * 4.2 - s * 0.55) * (s * 2.6);
+        const waveY = khBot + tDist;
         ctx.lineTo(waveX, waveY);
-        prevTy = waveY;
       }
       ctx.stroke();
+
+      // Ribbon 2: Emerald Jade Silk
+      ctx.strokeStyle = "rgba(16, 185, 129, 0.9)";
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(2, khBot + 1);
+      for (let s = 1; s <= 8; s++) {
+        const tDist = s * 6.2;
+        const waveX = 2 + Math.sin(time * 4.2 - s * 0.55 + 0.9) * (s * 2.4);
+        const waveY = khBot + 1 + tDist;
+        ctx.lineTo(waveX, waveY);
+      }
+      ctx.stroke();
+
       ctx.restore();
 
       // =========================================================================
