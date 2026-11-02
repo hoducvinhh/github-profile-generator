@@ -27,6 +27,10 @@ next-env.d.ts
 *.cert
 
 # Internal Plans, Specifications & Personal Notes
+promt.md
+prompt.md
+[pP][rR][oO][mM][pP][tT].md
+[pP][rR][oO][mM][tT].md
 [pP][lL][aA][nN].md
 [pP][lL][aA][nN]*.md
 *plan*.md
