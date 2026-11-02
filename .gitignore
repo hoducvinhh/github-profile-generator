@@ -58,6 +58,10 @@ drafts/
 .gemini/
 .claude/
 .aider*
+.impeccable/
+**/.impeccable/
+PRODUCT.md
+DESIGN.md
 
 # Logs & Debug
 *.log
