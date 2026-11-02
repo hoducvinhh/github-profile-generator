@@ -217,14 +217,6 @@ export function Header() {
             className="hidden"
           />
 
-          <Link
-            href="/station"
-            className="hidden sm:flex items-center gap-1 text-xs font-mono text-cyan-400 hover:text-cyan-300 border border-cyan-500/30 px-2.5 py-1 rounded bg-cyan-950/20 transition-colors"
-            title="Trạm nghiên cứu vũ trụ Outpost 94"
-          >
-            <span>OUTPOST 94 ❄</span>
-          </Link>
-
           <Button
             variant="ghost"
             size="icon"
