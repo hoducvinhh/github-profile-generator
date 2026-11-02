@@ -55,11 +55,11 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${outfit.variable} ${jetbrainsMono.variable} ${bebasNeue.variable}`}
     >
-      <body className={`${outfit.className} font-sans antialiased bg-[#07080a] text-[#f2f4f8] selection:bg-amber-500/20 selection:text-amber-300`}>
+      <body className={`${outfit.className} font-sans antialiased bg-background text-foreground transition-colors duration-200 selection:bg-amber-500/25 selection:text-amber-500`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
-          forcedTheme="dark"
+          enableSystem
           disableTransitionOnChange
         >
           {children}

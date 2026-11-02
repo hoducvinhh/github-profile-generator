@@ -39,9 +39,14 @@ import {
 export function Header() {
   const { config, undo, redo, canUndo, canRedo, importProfileConfig } =
     useProfileStore();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [copied, setCopied] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const markdown = React.useMemo(() => {
     return serializeProfileMarkdown(config);
@@ -73,20 +78,24 @@ export function Header() {
     }
   };
 
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-background/85 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-background/90 backdrop-blur-md">
       <div className="flex h-13 items-center justify-between px-3 sm:px-5">
         {/* Left: Brand & History Controls */}
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-900 border border-white/10 text-emerald-400 group-hover:border-emerald-500/50 group-hover:text-emerald-300 transition-all shadow-inner">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-muted border border-border text-[#ff5f1f] group-hover:border-[#ff5f1f]/50 transition-all shadow-inner">
               <Flame className="h-4 w-4" />
             </div>
             <div className="flex items-center gap-1.5">
               <span className="font-semibold text-sm tracking-tight text-foreground">
                 ProfileForge
               </span>
-              <span className="rounded px-1.5 py-0.5 text-xs font-mono font-medium border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+              <span className="rounded px-1.5 py-0.5 text-xs font-mono font-medium border border-[#ff5f1f]/30 bg-[#ff5f1f]/10 text-[#ff773d]">
                 v1.0
               </span>
             </div>
@@ -117,7 +126,7 @@ export function Header() {
         </div>
 
         {/* Center: Command Controls (Template, Theme, GitHub Import) */}
-        <div className="hidden lg:flex items-center gap-1.5 bg-muted/40 border border-border/60 p-1 rounded-lg">
+        <div className="hidden lg:flex items-center gap-1.5 bg-muted/50 border border-border/70 p-1 rounded-lg">
           <TemplateSelector />
           <div className="h-4 w-[1px] bg-border/60 mx-0.5" />
           <ThemeSelector />
@@ -136,7 +145,7 @@ export function Header() {
           <Button
             size="sm"
             onClick={handleCopy}
-            className="h-8 gap-1.5 text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm tech-glow-subtle transition-all"
+            className="h-8 gap-1.5 text-xs font-medium bg-[#ff5f1f] text-white hover:bg-[#ff773d] shadow-sm transition-all"
           >
             {copied ? (
               <>
@@ -156,14 +165,14 @@ export function Header() {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 gap-1 px-2.5 text-xs border-border/80 hover:bg-muted/60"
+                className="h-8 gap-1 px-2.5 text-xs border-border hover:bg-muted"
               >
                 <Download className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="hidden md:inline">Export</span>
                 <ChevronDown className="h-3 w-3 opacity-60 ml-0.5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 p-1.5">
+            <DropdownMenuContent align="end" className="w-56 p-1.5 bg-popover text-popover-foreground border-border">
               <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
                 Export Options
               </DropdownMenuLabel>
@@ -172,14 +181,14 @@ export function Header() {
                 onClick={handleDownloadReadme}
                 className="cursor-pointer gap-2.5 text-xs py-2"
               >
-                <Download className="h-4 w-4 text-emerald-400" />
+                <Download className="h-4 w-4 text-[#ff5f1f]" />
                 <span>Download README.md</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={handleDownloadZip}
                 className="cursor-pointer gap-2.5 text-xs py-2"
               >
-                <Archive className="h-4 w-4 text-emerald-400" />
+                <Archive className="h-4 w-4 text-[#ff5f1f]" />
                 <span>Download ZIP Package</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -212,11 +221,14 @@ export function Header() {
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-muted-foreground hover:text-foreground"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            title="Toggle theme"
+            onClick={toggleTheme}
+            title={mounted && resolvedTheme === "dark" ? "Chuyển sang giao diện Sáng" : "Chuyển sang giao diện Tối"}
           >
-            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            {mounted && resolvedTheme === "dark" ? (
+              <Sun className="h-4 w-4 text-amber-400 transition-transform" />
+            ) : (
+              <Moon className="h-4 w-4 text-indigo-500 transition-transform" />
+            )}
             <span className="sr-only">Toggle theme</span>
           </Button>
         </div>
