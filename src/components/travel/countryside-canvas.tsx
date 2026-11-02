@@ -7,11 +7,14 @@ interface Stork {
   y: number;
   vx: number;
   vy: number;
-  size: number;
-  flap: number;
-  flapSpeed: number;
-  altitudeOffset: number;
+  scale: number;
+  depth: number; // 0.4 (far away) to 1.0 (closer)
   opacity: number;
+  flapPhase: number;
+  flapSpeed: number;
+  glideTimer: number; // countdown for gliding
+  isGliding: boolean;
+  baseY: number;
 }
 
 interface SunMote {
@@ -21,16 +24,16 @@ interface SunMote {
   vy: number;
   radius: number;
   alpha: number;
-  pulseSpeed: number;
+  pulse: number;
 }
 
-interface RiverRipple {
+interface RiverGlint {
   x: number;
   y: number;
-  width: number;
+  len: number;
   speed: number;
-  phase: number;
   alpha: number;
+  phase: number;
 }
 
 interface CountrysideCanvasProps {
@@ -52,117 +55,126 @@ export function CountrysideCanvas({
     if (!ctx) return;
 
     let animId: number;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    let cssWidth = window.innerWidth;
+    let cssHeight = window.innerHeight;
+
+    const setupCanvasSize = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      cssWidth = window.innerWidth;
+      cssHeight = window.innerHeight;
+      canvas.width = cssWidth * dpr;
+      canvas.height = cssHeight * dpr;
+      canvas.style.width = `${cssWidth}px`;
+      canvas.style.height = `${cssHeight}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    setupCanvasSize();
+
+    // 1. Initialize Realistic Flying Storks (Đàn Cò Trắng Bay Lượn Tự Nhiên)
+    // Structured in a graceful staggered flight formation
+    const STORK_COUNT = 8;
+    let storks: Stork[] = [];
+
+    const initStorks = () => {
+      storks = Array.from({ length: STORK_COUNT }, (_, i) => {
+        const depth = 0.45 + (i / STORK_COUNT) * 0.55; // Multi-layer depth
+        const spawnX = cssWidth * 0.55 + i * 45 + Math.random() * 20;
+        const spawnY = cssHeight * 0.08 + i * 16 + Math.random() * 20;
+
+        return {
+          x: spawnX,
+          y: spawnY,
+          baseY: spawnY,
+          vx: -(0.55 + depth * 0.45), // Distant storks fly slower
+          vy: 0,
+          scale: (8 + depth * 7),
+          depth,
+          opacity: 0.75 + depth * 0.25,
+          flapPhase: Math.random() * Math.PI * 2,
+          flapSpeed: 0.065 + Math.random() * 0.02, // Majestic, slow wingbeat (~1.5/s)
+          glideTimer: Math.random() * 120 + 80,
+          isGliding: false,
+        };
+      });
+    };
+
+    // 2. Initialize Golden Sunlight Pollen / Motes
+    let motes: SunMote[] = Array.from({ length: 30 }, () => ({
+      x: Math.random() * cssWidth,
+      y: Math.random() * cssHeight,
+      vx: (Math.random() - 0.3) * 0.3,
+      vy: -(0.25 + Math.random() * 0.4),
+      radius: 1 + Math.random() * 1.5,
+      alpha: 0.2 + Math.random() * 0.5,
+      pulse: Math.random() * Math.PI * 2,
+    }));
+
+    // 3. Initialize River Water Light Glints (Ánh nước sông lăn tăn)
+    let glints: RiverGlint[] = Array.from({ length: 22 }, () => ({
+      x: cssWidth * (0.32 + Math.random() * 0.45),
+      y: cssHeight * (0.62 + Math.random() * 0.35),
+      len: 12 + Math.random() * 28,
+      speed: 0.025 + Math.random() * 0.03,
+      alpha: 0.25 + Math.random() * 0.45,
+      phase: Math.random() * Math.PI * 2,
+    }));
+
+    initStorks();
 
     const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-      initElements();
+      setupCanvasSize();
+      initStorks();
     };
 
     window.addEventListener("resize", handleResize);
-
-    // 1. Initialize Flocks of White Storks (Cánh cò trắng)
-    let storks: Stork[] = [];
-    const STORK_COUNT = 7;
-
-    // 2. Initialize Golden Sunlight Pollen / Motes
-    let motes: SunMote[] = [];
-    const MOTE_COUNT = 35;
-
-    // 3. Initialize River Shimmer Ripples
-    let ripples: RiverRipple[] = [];
-    const RIPPLE_COUNT = 24;
-
-    const initElements = () => {
-      // Storks flying across the sky (upper 45% of viewport)
-      storks = Array.from({ length: STORK_COUNT }, (_, i) => ({
-        x: width * 0.45 + (i * 35) + Math.random() * 20,
-        y: height * 0.12 + (i * 18) + Math.random() * 15,
-        vx: -(0.5 + Math.random() * 0.4),
-        vy: (Math.random() - 0.5) * 0.15,
-        size: 9 + Math.random() * 6,
-        flap: Math.random() * Math.PI * 2,
-        flapSpeed: 0.08 + Math.random() * 0.04,
-        altitudeOffset: Math.random() * 100,
-        opacity: 0.85 + Math.random() * 0.15,
-      }));
-
-      // Golden motes floating in sunbeams
-      motes = Array.from({ length: MOTE_COUNT }, () => ({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.3) * 0.4,
-        vy: -(0.3 + Math.random() * 0.5),
-        radius: 1 + Math.random() * 2,
-        alpha: 0.2 + Math.random() * 0.6,
-        pulseSpeed: 0.02 + Math.random() * 0.03,
-      }));
-
-      // River surface ripples (concentrated in river area: lower half)
-      ripples = Array.from({ length: RIPPLE_COUNT }, () => ({
-        x: width * (0.28 + Math.random() * 0.45),
-        y: height * (0.55 + Math.random() * 0.4),
-        width: 14 + Math.random() * 32,
-        speed: 0.03 + Math.random() * 0.03,
-        phase: Math.random() * Math.PI * 2,
-        alpha: 0.3 + Math.random() * 0.45,
-      }));
-    };
-
-    initElements();
 
     let time = 0;
 
     const render = () => {
       time += 0.02;
-      ctx.clearRect(0, 0, width, height);
+      ctx.clearRect(0, 0, cssWidth, cssHeight);
 
-      // --- 1. RENDER RIVER SHIMMER (Golden Morning Reflections) ---
-      for (const r of ripples) {
-        r.phase += r.speed;
-        const currentAlpha = Math.max(0, Math.sin(r.phase)) * r.alpha;
-        const currentWidth = r.width * (0.8 + 0.4 * Math.sin(r.phase * 0.7));
-
-        ctx.save();
-        ctx.strokeStyle = `rgba(255, 230, 160, ${currentAlpha * 0.5})`;
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        // Gentle wave arc
-        ctx.ellipse(
-          r.x + parallaxX * 0.3,
-          r.y + parallaxY * 0.2,
-          currentWidth,
-          1.8,
-          0,
-          0,
-          Math.PI * 2
-        );
-        ctx.stroke();
-        ctx.restore();
+      // --- 1. RENDER RIVER SURFACE GLINTS ---
+      for (const g of glints) {
+        g.phase += g.speed;
+        const currentAlpha = Math.max(0, Math.sin(g.phase)) * g.alpha;
+        if (currentAlpha > 0.01) {
+          ctx.save();
+          ctx.strokeStyle = `rgba(255, 235, 175, ${currentAlpha * 0.6})`;
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          const rx = g.x + parallaxX * 0.15;
+          const ry = g.y + parallaxY * 0.1;
+          ctx.moveTo(rx - g.len * 0.5, ry);
+          ctx.lineTo(rx + g.len * 0.5, ry);
+          ctx.stroke();
+          ctx.restore();
+        }
       }
 
-      // --- 2. RENDER GOLDEN MOTES IN SUNBEAMS ---
+      // --- 2. RENDER SUNLIGHT MOTES ---
       for (const m of motes) {
         m.x += m.vx;
         m.y += m.vy;
-        m.alpha += Math.sin(time * 2) * m.pulseSpeed;
+        m.pulse += 0.03;
 
         if (m.y < 0) {
-          m.y = height + 10;
-          m.x = Math.random() * width;
+          m.y = cssHeight + 10;
+          m.x = Math.random() * cssWidth;
         }
-        if (m.x < 0) m.x = width;
-        if (m.x > width) m.x = 0;
+        if (m.x < 0) m.x = cssWidth;
+        if (m.x > cssWidth) m.x = 0;
 
+        const currentAlpha = Math.abs(Math.sin(m.pulse)) * m.alpha;
         ctx.save();
-        ctx.fillStyle = `rgba(254, 240, 180, ${Math.abs(m.alpha)})`;
+        ctx.fillStyle = `rgba(255, 245, 195, ${currentAlpha})`;
         ctx.beginPath();
         ctx.arc(
-          m.x + parallaxX * 0.5,
-          m.y + parallaxY * 0.4,
+          m.x + parallaxX * 0.25,
+          m.y + parallaxY * 0.2,
           m.radius,
           0,
           Math.PI * 2
@@ -171,74 +183,137 @@ export function CountrysideCanvas({
         ctx.restore();
       }
 
-      // --- 3. RENDER FLYING WHITE STORKS (Cánh Cò Trắng) ---
+      // --- 3. RENDER REALISTIC FLYING WHITE STORKS (Cánh Cò Đích Thực) ---
       for (const s of storks) {
-        s.flap += s.flapSpeed;
+        // Flight movement
         s.x += s.vx;
-        // Undulating flight trajectory
-        s.y += s.vy + Math.sin(time + s.altitudeOffset) * 0.25;
 
-        // Reset if offscreen to the left
-        if (s.x < -60) {
-          s.x = width + 50 + Math.random() * 80;
-          s.y = height * 0.12 + Math.random() * (height * 0.25);
+        // Glide vs Flap State Machine
+        s.glideTimer -= 1;
+        if (s.glideTimer <= 0) {
+          s.isGliding = !s.isGliding;
+          // Flap for 140-200 frames, glide for 90-150 frames
+          s.glideTimer = s.isGliding
+            ? 80 + Math.random() * 80
+            : 130 + Math.random() * 100;
         }
 
+        if (!s.isGliding) {
+          s.flapPhase += s.flapSpeed;
+          // Downstroke gives upward lift; upstroke loses slight lift
+          const lift = Math.cos(s.flapPhase) * 0.22;
+          s.vy = lift;
+        } else {
+          // Slow graceful descent during glide
+          s.flapPhase = Math.sin(s.flapPhase) * 0.12; // wings gently held flat
+          s.vy = 0.05;
+        }
+
+        s.y += s.vy;
+
+        // Respawn when crossing off the left edge
+        if (s.x < -80) {
+          s.x = cssWidth + 60 + Math.random() * 80;
+          s.y = cssHeight * 0.08 + Math.random() * (cssHeight * 0.26);
+          s.baseY = s.y;
+          s.isGliding = false;
+          s.glideTimer = 100 + Math.random() * 60;
+        }
+
+        // Draw Anatomical Stork Silhouette
         ctx.save();
-        ctx.translate(s.x + parallaxX * 0.2, s.y + parallaxY * 0.15);
+        const drawX = s.x + parallaxX * (s.depth * 0.3);
+        const drawY = s.y + parallaxY * (s.depth * 0.2);
+        ctx.translate(drawX, drawY);
 
-        // Wing flap angle (-0.6 to 0.7)
-        const wingFlap = Math.sin(s.flap);
-        const wingSpan = s.size;
-        const bodyLength = s.size * 0.7;
+        const sz = s.scale;
+        const wingBeat = s.isGliding ? 0.08 : Math.sin(s.flapPhase);
 
+        // Facing direction: flying toward left
         ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
-        ctx.strokeStyle = `rgba(235, 240, 245, ${s.opacity})`;
-        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = `rgba(240, 245, 250, ${s.opacity})`;
 
-        // Draw bird body
+        // --- A. Slender Body & Tail ---
         ctx.beginPath();
-        ctx.ellipse(0, 0, bodyLength, bodyLength * 0.28, -0.08, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, sz * 0.65, sz * 0.18, -0.05, 0, Math.PI * 2);
         ctx.fill();
 
-        // Draw left wing
+        // --- B. Graceful Long Neck & Pointed Beak (Stretched forward-left) ---
         ctx.beginPath();
-        ctx.moveTo(-bodyLength * 0.2, 0);
-        ctx.quadraticCurveTo(
-          -bodyLength * 0.1,
-          wingFlap * wingSpan * 0.9,
-          wingSpan * 0.9,
-          wingFlap * wingSpan * 1.2
-        );
-        ctx.quadraticCurveTo(
-          0,
-          wingFlap * wingSpan * 0.4,
-          bodyLength * 0.2,
-          0
-        );
+        ctx.moveTo(-sz * 0.5, 0);
+        ctx.quadraticCurveTo(-sz * 0.9, -sz * 0.08, -sz * 1.3, -sz * 0.02); // neck
+        ctx.lineTo(-sz * 1.65, -sz * 0.01); // sharp yellow-orange beak tip
+        ctx.lineTo(-sz * 1.25, sz * 0.04);
+        ctx.closePath();
         ctx.fill();
 
-        // Draw right wing
+        // Amber beak accent
+        ctx.fillStyle = `rgba(245, 180, 75, ${s.opacity})`;
         ctx.beginPath();
-        ctx.moveTo(-bodyLength * 0.2, 0);
-        ctx.quadraticCurveTo(
-          -bodyLength * 0.3,
-          -wingFlap * wingSpan * 0.8,
-          -wingSpan * 0.8,
-          -wingFlap * wingSpan * 1.1
-        );
-        ctx.quadraticCurveTo(
-          -bodyLength * 0.1,
-          -wingFlap * wingSpan * 0.3,
-          bodyLength * 0.1,
-          0
-        );
+        ctx.moveTo(-sz * 1.3, -sz * 0.02);
+        ctx.lineTo(-sz * 1.65, -sz * 0.01);
+        ctx.lineTo(-sz * 1.3, sz * 0.03);
+        ctx.closePath();
         ctx.fill();
 
-        // Subtle dark wingtip feather tips
-        ctx.fillStyle = "rgba(40, 45, 55, 0.55)";
+        // --- C. Trailing Slender Legs (Stretched back behind tail) ---
+        ctx.strokeStyle = `rgba(215, 155, 70, ${s.opacity * 0.8})`;
+        ctx.lineWidth = 0.9;
         ctx.beginPath();
-        ctx.arc(wingSpan * 0.85, wingFlap * wingSpan * 1.15, 1.2, 0, Math.PI * 2);
+        ctx.moveTo(sz * 0.5, 0);
+        ctx.lineTo(sz * 1.45, sz * 0.08); // leg 1
+        ctx.moveTo(sz * 0.45, sz * 0.04);
+        ctx.lineTo(sz * 1.4, sz * 0.14); // leg 2
+        ctx.stroke();
+
+        // --- D. Articulated Wings with Primary Feathers ---
+        // Left Wing (Foreground wing)
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
+        const wingSpan = sz * 1.25;
+        const wingTipY = wingBeat * wingSpan * 0.9;
+        const wingElbowY = wingBeat * wingSpan * 0.45;
+
+        ctx.beginPath();
+        ctx.moveTo(-sz * 0.1, -sz * 0.05); // shoulder
+        ctx.quadraticCurveTo(
+          sz * 0.1,
+          wingElbowY,
+          sz * 0.35,
+          wingTipY
+        ); // leading wing edge to tip
+        ctx.quadraticCurveTo(
+          sz * 0.15,
+          wingTipY * 0.7 + sz * 0.2,
+          sz * 0.3,
+          sz * 0.05
+        ); // trailing wing edge back to body
+        ctx.closePath();
+        ctx.fill();
+
+        // Right Wing (Background wing)
+        const backTipY = -wingBeat * wingSpan * 0.75;
+        const backElbowY = -wingBeat * wingSpan * 0.35;
+        ctx.beginPath();
+        ctx.moveTo(-sz * 0.15, -sz * 0.08);
+        ctx.quadraticCurveTo(
+          -sz * 0.05,
+          backElbowY,
+          sz * 0.15,
+          backTipY
+        );
+        ctx.quadraticCurveTo(
+          sz * 0.05,
+          backTipY * 0.6,
+          sz * 0.2,
+          -sz * 0.02
+        );
+        ctx.closePath();
+        ctx.fill();
+
+        // Dark wingtip feather accents (cò trắng có chót cánh đen sẫm)
+        ctx.fillStyle = `rgba(35, 40, 50, ${s.opacity * 0.65})`;
+        ctx.beginPath();
+        ctx.arc(sz * 0.35, wingTipY, 1.4, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.restore();
@@ -262,4 +337,3 @@ export function CountrysideCanvas({
     />
   );
 }
-
