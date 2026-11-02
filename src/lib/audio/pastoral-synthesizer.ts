@@ -149,3 +149,4 @@ class PastoralAudioSynthesizer {
 
 export const pastoralAudio =
   typeof window !== "undefined" ? new PastoralAudioSynthesizer() : null;
+

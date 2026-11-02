@@ -113,3 +113,4 @@ export function DestinationStrip({
     </footer>
   );
 }
+
