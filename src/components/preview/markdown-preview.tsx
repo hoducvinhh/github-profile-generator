@@ -94,7 +94,7 @@ export function MarkdownPreview({ markdown }: MarkdownPreviewProps) {
           <span className="opacity-50">/</span>
           <span className="opacity-80">README.md</span>
         </div>
-        <div className="flex items-center gap-2 text-[11px] opacity-70">
+        <div className="flex items-center gap-2 text-xs text-zinc-400">
           <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
           <span>GFM Verified</span>
         </div>

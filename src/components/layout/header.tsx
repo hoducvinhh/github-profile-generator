@@ -145,7 +145,7 @@ export function Header() {
           <Button
             size="sm"
             onClick={handleCopy}
-            className="h-8 gap-1.5 text-xs font-medium bg-[#ff5f1f] text-white hover:bg-[#ff773d] shadow-sm transition-all"
+            className="h-8 gap-1.5 text-xs font-semibold bg-[#ff5f1f] text-black hover:bg-[#ff773d] shadow-sm transition-all"
           >
             {copied ? (
               <>
@@ -216,6 +216,14 @@ export function Header() {
             accept=".json"
             className="hidden"
           />
+
+          <Link
+            href="/station"
+            className="hidden sm:flex items-center gap-1 text-xs font-mono text-cyan-400 hover:text-cyan-300 border border-cyan-500/30 px-2.5 py-1 rounded bg-cyan-950/20 transition-colors"
+            title="Trạm nghiên cứu vũ trụ Outpost 94"
+          >
+            <span>OUTPOST 94 ❄</span>
+          </Link>
 
           <Button
             variant="ghost"
