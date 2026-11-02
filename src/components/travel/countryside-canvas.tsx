@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-// --- Types for Natural Micro-Animations ---
+// --- Types for Stylized Micro-Animations (Ghibli / Aerial Countryside) ---
 
 interface Stork {
   x: number;
@@ -107,23 +107,23 @@ export function CountrysideCanvas({
 
     setupCanvasSize();
 
-    // 1. FLOCK OF WHITE STORKS (ĐÀN CÒ TRẮNG BAY LƯỢN TỰ NHIÊN)
-    const STORK_COUNT = 7;
+    // 1. FLOCK OF WHITE STORKS (AERIAL HIGH-ANGLE PERSPECTIVE)
+    const STORK_COUNT = 6;
     let storks: Stork[] = [];
 
     const initStorks = () => {
       storks = Array.from({ length: STORK_COUNT }, (_, i) => {
-        const depth = 0.5 + (i / STORK_COUNT) * 0.5;
-        const spawnX = cssWidth * 0.52 + i * 42 + Math.random() * 20;
-        const spawnY = cssHeight * 0.09 + i * 14 + Math.random() * 15;
+        const depth = 0.55 + (i / STORK_COUNT) * 0.45;
+        const spawnX = cssWidth * 0.35 + i * 36 + Math.random() * 15;
+        const spawnY = cssHeight * 0.36 + i * 14 + Math.random() * 12;
 
         return {
           x: spawnX,
           y: spawnY,
           baseY: spawnY,
-          vx: -(0.55 + depth * 0.4),
+          vx: -(0.5 + depth * 0.35),
           vy: 0,
-          scale: 8 + depth * 6,
+          scale: 7 + depth * 5,
           depth,
           opacity: 0.8 + depth * 0.2,
           flapPhase: Math.random() * Math.PI * 2,
@@ -134,7 +134,7 @@ export function CountrysideCanvas({
       });
     };
 
-    // 2. JUMPING FISH IN THE RIVER (CÁ NHẢY TUNG LÊN MẶT NƯỚC)
+    // 2. JUMPING FISH IN THE JADE RIVER
     let fish: Fish = {
       active: false,
       x: 0,
@@ -143,32 +143,32 @@ export function CountrysideCanvas({
       startY: 0,
       vx: 0,
       vy: 0,
-      gravity: 0.35,
+      gravity: 0.32,
       scale: 1,
       alpha: 1,
       rotation: 0,
     };
-    let nextFishTime = 180 + Math.random() * 200; // frames until next fish jump
+    let nextFishTime = 160 + Math.random() * 220;
 
-    // 3. WATER RIPPLES & SPLASHES (GỢN SÓNG VÀ GIỌT NƯỚC BẮN)
+    // 3. WATER RIPPLES & SPLASHES
     let ripples: WaterRipple[] = [];
     let splashes: SplashParticle[] = [];
 
-    // 4. RIVER SURFACE GLINTS & SUN MOTES
-    let glints: RiverGlint[] = Array.from({ length: 20 }, () => ({
-      x: cssWidth * (0.34 + Math.random() * 0.45),
-      y: cssHeight * (0.63 + Math.random() * 0.32),
-      len: 12 + Math.random() * 25,
+    // 4. RIVER SURFACE GLINTS & SUNLIGHT PARTICLES
+    let glints: RiverGlint[] = Array.from({ length: 22 }, () => ({
+      x: cssWidth * (0.28 + Math.random() * 0.22),
+      y: cssHeight * (0.52 + Math.random() * 0.42),
+      len: 10 + Math.random() * 24,
       speed: 0.025 + Math.random() * 0.03,
-      alpha: 0.25 + Math.random() * 0.45,
+      alpha: 0.3 + Math.random() * 0.45,
       phase: Math.random() * Math.PI * 2,
     }));
 
-    let motes: SunMote[] = Array.from({ length: 26 }, () => ({
+    let motes: SunMote[] = Array.from({ length: 25 }, () => ({
       x: Math.random() * cssWidth,
       y: Math.random() * cssHeight,
       vx: (Math.random() - 0.3) * 0.25,
-      vy: -(0.25 + Math.random() * 0.35),
+      vy: -(0.2 + Math.random() * 0.35),
       radius: 1 + Math.random() * 1.5,
       alpha: 0.2 + Math.random() * 0.5,
       pulse: Math.random() * Math.PI * 2,
@@ -190,7 +190,7 @@ export function CountrysideCanvas({
       ctx.clearRect(0, 0, cssWidth, cssHeight);
 
       // =========================================================================
-      // 1. WATER RIPPLES & RIVER SHIMMER (GỢN NƯỚC LĂN TĂN)
+      // 1. WATER RIPPLES & RIVER SHIMMER
       // =========================================================================
       for (let i = ripples.length - 1; i >= 0; i--) {
         const rip = ripples[i];
@@ -203,16 +203,15 @@ export function CountrysideCanvas({
         }
 
         ctx.save();
-        ctx.strokeStyle = `rgba(255, 240, 190, ${rip.alpha})`;
+        ctx.strokeStyle = `rgba(255, 245, 200, ${rip.alpha})`;
         ctx.lineWidth = 1.3;
         ctx.beginPath();
-        // Perspective squashed ellipse matching river surface angle
         ctx.ellipse(
           rip.x + parallaxX * 0.15,
           rip.y + parallaxY * 0.1,
           rip.radius,
-          rip.radius * 0.35,
-          0,
+          rip.radius * 0.4, // aerial isometric tilt
+          -0.1,
           0,
           Math.PI * 2
         );
@@ -225,7 +224,7 @@ export function CountrysideCanvas({
         const p = splashes[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.25; // gravity
+        p.vy += 0.25;
         p.alpha *= 0.95;
 
         if (p.alpha < 0.03) {
@@ -234,7 +233,7 @@ export function CountrysideCanvas({
         }
 
         ctx.save();
-        ctx.fillStyle = `rgba(255, 250, 220, ${p.alpha})`;
+        ctx.fillStyle = `rgba(255, 255, 230, ${p.alpha})`;
         ctx.beginPath();
         ctx.arc(
           p.x + parallaxX * 0.15,
@@ -247,13 +246,13 @@ export function CountrysideCanvas({
         ctx.restore();
       }
 
-      // Ambient river glints
+      // Ambient river sunlight glints
       for (const g of glints) {
         g.phase += g.speed;
         const currentAlpha = Math.max(0, Math.sin(g.phase)) * g.alpha;
         if (currentAlpha > 0.01) {
           ctx.save();
-          ctx.strokeStyle = `rgba(255, 240, 185, ${currentAlpha * 0.6})`;
+          ctx.strokeStyle = `rgba(255, 240, 185, ${currentAlpha * 0.65})`;
           ctx.lineWidth = 1.2;
           ctx.beginPath();
           const rx = g.x + parallaxX * 0.15;
@@ -266,33 +265,32 @@ export function CountrysideCanvas({
       }
 
       // =========================================================================
-      // 2. ROWING BOAT MOVEMENT & WATER WAKE (CON THUYỀN VÀ MÁI CHÈO)
+      // 2. SAMPAN BOAT ROWING MOVEMENT & WATER WAKE (AERIAL PERSPECTIVE)
       // =========================================================================
-      // The boat is located in the river around (x: 0.72, y: 0.68)
-      const boatBaseX = cssWidth * 0.725;
-      const boatBaseY = cssHeight * 0.685;
+      // In the new aerial painting, the boat is situated in the lower-left river bend
+      const boatBaseX = cssWidth * 0.285;
+      const boatBaseY = cssHeight * 0.815;
 
-      // Gentle river drift oscillation
-      const rowCycle = time * 1.5; // rhythm of the row stroke
-      const boatDriftX = Math.sin(time * 0.4) * 8;
-      const boatBobY = Math.sin(rowCycle * 2) * 1.6;
+      const rowCycle = time * 1.5;
+      const boatDriftX = Math.sin(time * 0.35) * 6;
+      const boatBobY = Math.sin(rowCycle * 2) * 1.4;
       const boatTilt = Math.sin(rowCycle * 2) * 0.025;
 
       const boatX = boatBaseX + boatDriftX + parallaxX * 0.15;
       const boatY = boatBaseY + boatBobY + parallaxY * 0.1;
 
-      // Emit wake ripples at oar entry moments
-      if (Math.sin(rowCycle * 2) > 0.95 && Math.random() < 0.25) {
+      // Emit wake ripples behind the boat
+      if (Math.sin(rowCycle * 2) > 0.93 && Math.random() < 0.3) {
         ripples.push({
-          x: boatX - 25,
+          x: boatX - 18,
           y: boatY + 8,
-          radius: 4,
-          maxRadius: 28,
+          radius: 3,
+          maxRadius: 26,
           speed: 0.35,
           alpha: 0.45,
         });
         ripples.push({
-          x: boatX + 15,
+          x: boatX + 16,
           y: boatY + 12,
           radius: 3,
           maxRadius: 22,
@@ -301,78 +299,77 @@ export function CountrysideCanvas({
         });
       }
 
-      // Draw subtle rowing oar movement and gentle wake overlay
+      // Dynamic rowing oar and water wake
       ctx.save();
       ctx.translate(boatX, boatY);
       ctx.rotate(boatTilt);
 
-      // Water displacement ripple under the sampan hull
-      ctx.strokeStyle = "rgba(255, 240, 200, 0.22)";
+      // Water displacement ripple around the wooden hull
+      ctx.strokeStyle = "rgba(255, 245, 210, 0.24)";
       ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.ellipse(0, 16, 52, 10, -0.05, 0, Math.PI * 2);
+      ctx.ellipse(0, 10, 42, 12, -0.2, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Subtle dynamic wooden oar movement (di chuyển nhịp nhàng theo điệu chèo)
-      const oarAngle = -0.35 + Math.sin(rowCycle * 2) * 0.25;
-      const oarLength = 48;
+      // Dynamic rowing oar sweeping in water (điệu chèo quạt nước)
+      const oarAngle = -0.45 + Math.sin(rowCycle * 2) * 0.28;
+      const oarLength = 40;
       const oarPivotX = -6;
-      const oarPivotY = 4;
+      const oarPivotY = 2;
       const oarTipX = oarPivotX - Math.cos(oarAngle) * oarLength;
-      const oarTipY = oarPivotY + Math.sin(oarAngle) * oarLength * 0.6;
+      const oarTipY = oarPivotY + Math.sin(oarAngle) * oarLength * 0.55;
 
-      // Oar shaft (cán chèo gỗ)
-      ctx.strokeStyle = "rgba(70, 48, 28, 0.9)";
-      ctx.lineWidth = 2.2;
+      // Oar shaft
+      ctx.strokeStyle = "rgba(75, 52, 30, 0.95)";
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(oarPivotX + 6, oarPivotY - 8);
+      ctx.moveTo(oarPivotX + 4, oarPivotY - 6);
       ctx.lineTo(oarTipX, oarTipY);
       ctx.stroke();
 
-      // Oar blade dipping into water (bản chèo)
-      ctx.fillStyle = "rgba(85, 55, 32, 0.95)";
+      // Oar blade dipping in water
+      ctx.fillStyle = "rgba(90, 60, 35, 0.95)";
       ctx.beginPath();
-      ctx.ellipse(oarTipX, oarTipY, 7, 3, oarAngle, 0, Math.PI * 2);
+      ctx.ellipse(oarTipX, oarTipY, 6, 2.8, oarAngle, 0, Math.PI * 2);
       ctx.fill();
 
-      // Water splash at oar tip when dipping
-      if (Math.sin(rowCycle * 2) > 0.4) {
-        ctx.fillStyle = "rgba(255, 255, 230, 0.55)";
+      // Water splash when oar pushes water
+      if (Math.sin(rowCycle * 2) > 0.45) {
+        ctx.fillStyle = "rgba(255, 255, 235, 0.6)";
         ctx.beginPath();
-        ctx.arc(oarTipX, oarTipY, 2.5, 0, Math.PI * 2);
+        ctx.arc(oarTipX, oarTipY, 2.4, 0, Math.PI * 2);
         ctx.fill();
       }
 
       ctx.restore();
 
       // =========================================================================
-      // 3. JUMPING FISH MECHANISM (CÁ NHẢY TUNG LÊN MẶT NƯỚC)
+      // 3. JUMPING FISH IN THE JADE RIVER (CÁ NHẢY TUNG LÊN MẶT NƯỚC)
       // =========================================================================
       nextFishTime -= 1;
       if (nextFishTime <= 0 && !fish.active) {
-        // Spawn fish in open river section (x: 0.38 - 0.58, y: 0.58 - 0.72)
-        const spawnX = cssWidth * (0.42 + Math.random() * 0.16);
-        const spawnY = cssHeight * (0.62 + Math.random() * 0.1);
+        // Spawn fish in mid-river curve (x: 0.35 - 0.45, y: 0.56 - 0.68)
+        const spawnX = cssWidth * (0.36 + Math.random() * 0.1);
+        const spawnY = cssHeight * (0.58 + Math.random() * 0.1);
         fish = {
           active: true,
           x: spawnX,
           y: spawnY,
           startX: spawnX,
           startY: spawnY,
-          vx: (Math.random() - 0.5) * 1.8,
-          vy: -(6.5 + Math.random() * 2.5), // Jump impulse
+          vx: (Math.random() - 0.5) * 1.6,
+          vy: -(6.0 + Math.random() * 2.2),
           gravity: 0.32,
-          scale: 7 + Math.random() * 4,
+          scale: 6.5 + Math.random() * 3.5,
           alpha: 1,
           rotation: 0,
         };
 
-        // Emergence ripple & splash
         ripples.push({
           x: spawnX,
           y: spawnY,
           radius: 3,
-          maxRadius: 26,
+          maxRadius: 24,
           speed: 0.45,
           alpha: 0.6,
         });
@@ -383,8 +380,8 @@ export function CountrysideCanvas({
             y: spawnY,
             vx: (Math.random() - 0.5) * 2.5,
             vy: -(1.5 + Math.random() * 2.5),
-            radius: 1 + Math.random() * 1.5,
-            alpha: 0.8,
+            radius: 1 + Math.random() * 1.4,
+            alpha: 0.85,
           });
         }
       }
@@ -395,7 +392,6 @@ export function CountrysideCanvas({
         fish.vy += fish.gravity;
         fish.rotation = Math.atan2(fish.vy, fish.vx);
 
-        // Render sleek jumping fish
         ctx.save();
         const fX = fish.x + parallaxX * 0.15;
         const fY = fish.y + parallaxY * 0.1;
@@ -404,54 +400,44 @@ export function CountrysideCanvas({
 
         const sz = fish.scale;
 
-        // Fish body (silvery golden carp)
-        ctx.fillStyle = "rgba(250, 235, 195, 0.95)";
-        ctx.strokeStyle = "rgba(180, 130, 60, 0.8)";
+        // Silvery golden fish body
+        ctx.fillStyle = "rgba(255, 240, 205, 0.95)";
+        ctx.strokeStyle = "rgba(195, 145, 70, 0.85)";
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.ellipse(0, 0, sz, sz * 0.38, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, sz, sz * 0.36, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
 
-        // Shimmering belly light
-        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+        // Glistening belly
+        ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
         ctx.beginPath();
-        ctx.ellipse(0, sz * 0.08, sz * 0.7, sz * 0.18, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, sz * 0.08, sz * 0.65, sz * 0.18, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Forked tail fin
-        ctx.fillStyle = "rgba(235, 165, 80, 0.85)";
+        // Forked tail
+        ctx.fillStyle = "rgba(240, 175, 90, 0.9)";
         ctx.beginPath();
         ctx.moveTo(-sz * 0.8, 0);
-        ctx.lineTo(-sz * 1.35, -sz * 0.35);
-        ctx.lineTo(-sz * 1.05, 0);
-        ctx.lineTo(-sz * 1.35, sz * 0.35);
+        ctx.lineTo(-sz * 1.3, -sz * 0.32);
+        ctx.lineTo(-sz * 1.0, 0);
+        ctx.lineTo(-sz * 1.3, sz * 0.32);
         ctx.closePath();
         ctx.fill();
 
         ctx.restore();
 
-        // Check if fish re-enters the water
         if (fish.vy > 0 && fish.y >= fish.startY) {
           fish.active = false;
-          nextFishTime = 240 + Math.random() * 320; // 4 to 9 seconds
+          nextFishTime = 220 + Math.random() * 300;
 
-          // Re-entry ripple and splash
           ripples.push({
             x: fish.x,
             y: fish.startY,
             radius: 4,
-            maxRadius: 36,
+            maxRadius: 32,
             speed: 0.5,
             alpha: 0.7,
-          });
-          ripples.push({
-            x: fish.x,
-            y: fish.startY,
-            radius: 2,
-            maxRadius: 20,
-            speed: 0.3,
-            alpha: 0.5,
           });
 
           for (let k = 0; k < 8; k++) {
@@ -459,7 +445,7 @@ export function CountrysideCanvas({
               x: fish.x,
               y: fish.startY,
               vx: (Math.random() - 0.5) * 3,
-              vy: -(2 + Math.random() * 3),
+              vy: -(2 + Math.random() * 2.8),
               radius: 1 + Math.random() * 1.8,
               alpha: 0.9,
             });
@@ -468,139 +454,50 @@ export function CountrysideCanvas({
       }
 
       // =========================================================================
-      // 4. CHILDREN FLYING KITE ON RICE PADDY (ĐỨA TRẺ THẢ DIỀU TRÊN ĐỒNG)
+      // 4. KITE SOARING IN WIND (CON DIỀU BAY TRÊN BỜ ĐÊ)
       // =========================================================================
-      // Dike path location in midground: (x: ~0.56, y: ~0.55)
-      const childX = cssWidth * 0.565 + parallaxX * 0.2;
-      const childY = cssHeight * 0.555 + parallaxY * 0.15;
+      // In the new painting, the kite and children are around (x: ~0.58, y: ~0.74) to (x: ~0.64, y: ~0.60)
+      const kiteOriginX = cssWidth * 0.58 + parallaxX * 0.2;
+      const kiteOriginY = cssHeight * 0.74 + parallaxY * 0.15;
 
-      // Flying kite soaring high in the sky: (x: ~0.51, y: ~0.20)
-      const kiteSwayX = Math.sin(time * 1.2) * 22;
-      const kiteSwayY = Math.cos(time * 0.9) * 14;
-      const kiteX = cssWidth * 0.515 + kiteSwayX + parallaxX * 0.3;
-      const kiteY = cssHeight * 0.21 + kiteSwayY + parallaxY * 0.2;
+      const kiteSwayX = Math.sin(time * 1.4) * 16;
+      const kiteSwayY = Math.cos(time * 1.0) * 10;
+      const kX = cssWidth * 0.645 + kiteSwayX + parallaxX * 0.25;
+      const kY = cssHeight * 0.595 + kiteSwayY + parallaxY * 0.2;
 
-      // A. Draw Curved Kite String (Sợi dây diều mảnh uốn lượn trong gió)
+      // Curved string
       ctx.save();
-      ctx.strokeStyle = "rgba(255, 250, 230, 0.45)";
-      ctx.lineWidth = 0.85;
+      ctx.strokeStyle = "rgba(255, 255, 240, 0.5)";
+      ctx.lineWidth = 0.9;
       ctx.beginPath();
-      ctx.moveTo(childX, childY - 14); // child's raised hand
-      // Curved sag control point
-      const sagX = (childX + kiteX) * 0.5 + Math.sin(time * 0.8) * 12;
-      const sagY = (childY + kiteY) * 0.5 + 24;
-      ctx.quadraticCurveTo(sagX, sagY, kiteX, kiteY);
+      ctx.moveTo(kiteOriginX, kiteOriginY - 8);
+      const sagX = (kiteOriginX + kX) * 0.5 + Math.sin(time * 0.8) * 8;
+      const sagY = (kiteOriginY + kY) * 0.5 + 16;
+      ctx.quadraticCurveTo(sagX, sagY, kX, kY);
       ctx.stroke();
       ctx.restore();
 
-      // B. Draw The Soaring Diamond Kite (Con Diều Sáo / Diều Đuôi Dài)
+      // Dynamic fluttering ribbon tail
       ctx.save();
-      ctx.translate(kiteX, kiteY);
-      const kiteTilt = Math.sin(time * 1.4) * 0.15;
-      ctx.rotate(kiteTilt);
+      ctx.translate(kX, kY);
+      ctx.rotate(Math.sin(time * 1.5) * 0.15);
 
-      const kSize = 13; // delicate, small model in the painting
-
-      // Diamond kite frame
-      ctx.fillStyle = "rgba(225, 95, 45, 0.92)"; // warm terracotta red
-      ctx.strokeStyle = "rgba(245, 205, 110, 0.9)"; // golden bamboo spine
-      ctx.lineWidth = 1.2;
-
+      ctx.strokeStyle = "rgba(255, 215, 110, 0.9)";
+      ctx.lineWidth = 1.3;
       ctx.beginPath();
-      ctx.moveTo(0, -kSize * 1.2); // top point
-      ctx.lineTo(kSize * 0.85, 0); // right point
-      ctx.lineTo(0, kSize * 1.2); // bottom point
-      ctx.lineTo(-kSize * 0.85, 0); // left point
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      // Cross spar
-      ctx.beginPath();
-      ctx.moveTo(-kSize * 0.85, 0);
-      ctx.lineTo(kSize * 0.85, 0);
-      ctx.moveTo(0, -kSize * 1.2);
-      ctx.lineTo(0, kSize * 1.2);
-      ctx.stroke();
-
-      // Flowing tail ribbons (Đuôi diều lượn sóng)
-      ctx.strokeStyle = "rgba(255, 220, 120, 0.85)";
-      ctx.lineWidth = 1.4;
-      ctx.beginPath();
-      ctx.moveTo(0, kSize * 1.2);
-
-      let prevTx = 0;
-      let prevTy = kSize * 1.2;
+      ctx.moveTo(0, 10);
+      let prevTy = 10;
       for (let s = 1; s <= 5; s++) {
-        const segDist = s * 7;
-        const waveX = Math.sin(time * 3 - s * 0.6) * (s * 3.5);
-        const waveY = prevTy + 6;
+        const waveX = Math.sin(time * 3.5 - s * 0.7) * (s * 3);
+        const waveY = prevTy + 5;
         ctx.lineTo(waveX, waveY);
-        prevTx = waveX;
         prevTy = waveY;
       }
       ctx.stroke();
-
-      ctx.restore();
-
-      // C. Draw Subtle Children Figures on the Path (Đứa trẻ nông thôn thả diều)
-      ctx.save();
-      ctx.translate(childX, childY);
-
-      // Child 1 (holding the spool)
-      // Legs / pants (quần nâu)
-      ctx.fillStyle = "rgba(55, 42, 32, 0.95)";
-      ctx.fillRect(-2, 0, 2, 8);
-      ctx.fillRect(1, 0, 2, 8);
-
-      // Shirt (áo nâu/áo bà ba)
-      ctx.fillStyle = "rgba(165, 85, 45, 0.95)";
-      ctx.beginPath();
-      ctx.ellipse(0, -5, 4.5, 6, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Raised arm holding kite string
-      ctx.strokeStyle = "rgba(195, 135, 90, 0.95)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(-2, -7);
-      ctx.lineTo(0, -14); // hand raised
-      ctx.stroke();
-
-      // Conical hat (nón lá)
-      ctx.fillStyle = "rgba(240, 215, 145, 0.95)";
-      ctx.beginPath();
-      ctx.moveTo(-6, -11);
-      ctx.lineTo(0, -16);
-      ctx.lineTo(6, -11);
-      ctx.closePath();
-      ctx.fill();
-
-      // Child 2 (smaller friend standing beside watching)
-      const c2OffsetX = 11;
-      ctx.fillStyle = "rgba(45, 55, 40, 0.9)";
-      ctx.fillRect(c2OffsetX - 1.5, 2, 1.8, 6);
-      ctx.fillRect(c2OffsetX + 1, 2, 1.8, 6);
-
-      // Shirt
-      ctx.fillStyle = "rgba(135, 110, 75, 0.95)";
-      ctx.beginPath();
-      ctx.ellipse(c2OffsetX, -3, 3.8, 5, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Small hat
-      ctx.fillStyle = "rgba(240, 215, 145, 0.95)";
-      ctx.beginPath();
-      ctx.moveTo(c2OffsetX - 5, -8);
-      ctx.lineTo(c2OffsetX, -12);
-      ctx.lineTo(c2OffsetX + 5, -8);
-      ctx.closePath();
-      ctx.fill();
-
       ctx.restore();
 
       // =========================================================================
-      // 5. REALISTIC FLYING WHITE STORKS (ĐÀN CÒ TRẮNG)
+      // 5. FLYING WHITE STORKS (AERIAL ANGLE)
       // =========================================================================
       for (const s of storks) {
         s.x += s.vx;
@@ -615,25 +512,25 @@ export function CountrysideCanvas({
 
         if (!s.isGliding) {
           s.flapPhase += s.flapSpeed;
-          s.vy = Math.cos(s.flapPhase) * 0.22;
+          s.vy = Math.cos(s.flapPhase) * 0.2;
         } else {
-          s.flapPhase = Math.sin(s.flapPhase) * 0.1;
-          s.vy = 0.04;
+          s.flapPhase = Math.sin(s.flapPhase) * 0.08;
+          s.vy = 0.03;
         }
 
         s.y += s.vy;
 
-        if (s.x < -80) {
-          s.x = cssWidth + 60 + Math.random() * 80;
-          s.y = cssHeight * 0.08 + Math.random() * (cssHeight * 0.25);
+        if (s.x < -60) {
+          s.x = cssWidth * 0.45 + Math.random() * 60;
+          s.y = cssHeight * 0.35 + Math.random() * (cssHeight * 0.12);
           s.baseY = s.y;
           s.isGliding = false;
-          s.glideTimer = 100 + Math.random() * 60;
+          s.glideTimer = 90 + Math.random() * 60;
         }
 
         ctx.save();
-        const drawX = s.x + parallaxX * (s.depth * 0.3);
-        const drawY = s.y + parallaxY * (s.depth * 0.2);
+        const drawX = s.x + parallaxX * (s.depth * 0.25);
+        const drawY = s.y + parallaxY * (s.depth * 0.18);
         ctx.translate(drawX, drawY);
 
         const sz = s.scale;
@@ -642,25 +539,25 @@ export function CountrysideCanvas({
         ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
         ctx.strokeStyle = `rgba(240, 245, 250, ${s.opacity})`;
 
-        // Slender Body
+        // Body
         ctx.beginPath();
         ctx.ellipse(0, 0, sz * 0.65, sz * 0.18, -0.05, 0, Math.PI * 2);
         ctx.fill();
 
-        // Graceful Long Neck & Beak
+        // Neck & Beak
         ctx.beginPath();
         ctx.moveTo(-sz * 0.5, 0);
         ctx.quadraticCurveTo(-sz * 0.9, -sz * 0.08, -sz * 1.3, -sz * 0.02);
-        ctx.lineTo(-sz * 1.65, -sz * 0.01);
+        ctx.lineTo(-sz * 1.6, -sz * 0.01);
         ctx.lineTo(-sz * 1.25, sz * 0.04);
         ctx.closePath();
         ctx.fill();
 
-        // Amber Beak Accent
+        // Amber Beak
         ctx.fillStyle = `rgba(245, 180, 75, ${s.opacity})`;
         ctx.beginPath();
         ctx.moveTo(-sz * 1.3, -sz * 0.02);
-        ctx.lineTo(-sz * 1.65, -sz * 0.01);
+        ctx.lineTo(-sz * 1.6, -sz * 0.01);
         ctx.lineTo(-sz * 1.3, sz * 0.03);
         ctx.closePath();
         ctx.fill();
@@ -670,9 +567,9 @@ export function CountrysideCanvas({
         ctx.lineWidth = 0.9;
         ctx.beginPath();
         ctx.moveTo(sz * 0.5, 0);
-        ctx.lineTo(sz * 1.45, sz * 0.08);
+        ctx.lineTo(sz * 1.4, sz * 0.08);
         ctx.moveTo(sz * 0.45, sz * 0.04);
-        ctx.lineTo(sz * 1.4, sz * 0.14);
+        ctx.lineTo(sz * 1.35, sz * 0.14);
         ctx.stroke();
 
         // Wings
@@ -704,17 +601,17 @@ export function CountrysideCanvas({
         ctx.closePath();
         ctx.fill();
 
-        // Dark wingtip feathers
+        // Dark feather wingtips
         ctx.fillStyle = `rgba(35, 40, 50, ${s.opacity * 0.65})`;
         ctx.beginPath();
-        ctx.arc(sz * 0.35, wingTipY, 1.4, 0, Math.PI * 2);
+        ctx.arc(sz * 0.35, wingTipY, 1.3, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.restore();
       }
 
       // =========================================================================
-      // 6. GOLDEN SUNLIGHT MOTES (BỤI NẮNG MAI)
+      // 6. SUNLIGHT MOTES
       // =========================================================================
       for (const m of motes) {
         m.x += m.vx;
