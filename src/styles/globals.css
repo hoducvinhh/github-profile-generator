@@ -4,25 +4,25 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 4%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 4%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 4%;
-    --primary: 160 84% 36%;
+    --background: 240 10% 3.5%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 5.2%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 5.2%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 6% 10%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
-    --accent: 240 5% 96%;
-    --accent-foreground: 240 6% 10%;
-    --destructive: 0 84% 60%;
+    --secondary: 240 6% 12%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 6% 10%;
+    --muted-foreground: 240 5% 62%;
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 63% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 160 84% 36%;
+    --border: 240 6% 14%;
+    --input: 240 6% 14%;
+    --ring: 24 95% 53%;
     --radius: 0.5rem;
   }
 
@@ -33,19 +33,19 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 5.2%;
     --popover-foreground: 0 0% 98%;
-    --primary: 160 84% 42%;
-    --primary-foreground: 240 10% 3.5%;
+    --primary: 24 95% 53%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 240 6% 12%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 6% 10%;
     --muted-foreground: 240 5% 62%;
-    --accent: 240 6% 14%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 63% 45%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 6% 14%;
     --input: 240 6% 14%;
-    --ring: 160 84% 42%;
+    --ring: 24 95% 53%;
   }
 }
 
@@ -54,25 +54,35 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
+    @apply bg-[#07080a] text-[#f2f4f8] antialiased selection:bg-amber-500/25 selection:text-amber-200;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
 
-/* Linear / Raycast Style Utilities */
-.tech-glass {
-  background: rgba(13, 15, 20, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+/* Atmospheric Forge Utilities */
+.forge-vignette {
+  background: 
+    radial-gradient(circle at 50% 20%, rgba(255, 95, 31, 0.12) 0%, transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 50%),
+    #07080a;
+}
+
+.vertical-stamp {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.forge-glow {
+  box-shadow: 0 0 35px -5px rgba(255, 95, 31, 0.25);
+}
+
+.forge-border {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.tech-glow {
-  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.2);
-}
-
-.tech-glow-subtle {
-  box-shadow: 0 0 15px -3px rgba(255, 255, 255, 0.05);
+.forge-border-active {
+  border: 1px solid rgba(255, 95, 31, 0.5);
+  box-shadow: 0 0 20px -3px rgba(255, 95, 31, 0.2);
 }
 
 /* GitHub Markdown Renderer Styles */
@@ -118,7 +128,7 @@
 .markdown-body blockquote {
   padding: 0 1em;
   color: hsl(var(--muted-foreground));
-  border-left: 0.25em solid hsl(var(--primary));
+  border-left: 0.25em solid #ff5f1f;
   margin: 0 0 16px 0;
 }
 

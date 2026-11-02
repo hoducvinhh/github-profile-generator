@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Outfit, JetBrains_Mono } from "next/font/google";
+import { Outfit, JetBrains_Mono, Bebas_Neue } from "next/font/google";
 import "@/styles/globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
@@ -16,10 +16,17 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+const bebasNeue = Bebas_Neue({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-bebas",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "ProfileForge — Visual GitHub Profile README Builder",
+  title: "ProfileForge — The Developer Identity Foundry",
   description:
-    "Build beautiful, personalized GitHub Profile READMEs with a visual editor, real GitHub data import, reusable components, customizable themes, and one-click Markdown export.",
+    "Forge high-impact GitHub profile READMEs in cold code and verified metrics. Visual drag-and-drop builder, real GitHub Octokit pipeline, and deterministic Markdown.",
   keywords: [
     "github profile",
     "github readme generator",
@@ -30,9 +37,9 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "ProfileForge Team" }],
   openGraph: {
-    title: "ProfileForge — Visual GitHub Profile README Builder",
+    title: "ProfileForge — The Developer Identity Foundry",
     description:
-      "Craft high-impact GitHub profile READMEs with real stats, drag-and-drop sections, and clean Markdown export.",
+      "Forge your GitHub profile in cold code and verified metrics. Visual builder, real stats, and deterministic Markdown.",
     type: "website",
   },
 };
@@ -46,13 +53,13 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${outfit.variable} ${jetbrainsMono.variable}`}
+      className={`${outfit.variable} ${jetbrainsMono.variable} ${bebasNeue.variable}`}
     >
-      <body className={`${outfit.className} font-sans antialiased`}>
+      <body className={`${outfit.className} font-sans antialiased bg-[#07080a] text-[#f2f4f8] selection:bg-amber-500/20 selection:text-amber-300`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
-          enableSystem
+          forcedTheme="dark"
           disableTransitionOnChange
         >
           {children}
