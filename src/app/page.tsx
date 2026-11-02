@@ -177,7 +177,7 @@ export default function LandingPage() {
       </section>
 
       {/* Feature Bento Grid */}
-      <section className="border-t border-border/80 bg-muted/10 py-24 px-6">
+      <section className="border-t border-border/80 bg-muted/5 py-24 px-6">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center space-y-2 mb-14">
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
@@ -253,7 +253,7 @@ export default function LandingPage() {
       </section>
 
       {/* Templates Section */}
-      <section id="templates" className="py-18 px-4">
+      <section id="templates" className="py-24 px-6">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center space-y-2 mb-12">
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
@@ -299,7 +299,7 @@ export default function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section className="border-t border-border/80 bg-muted/10 py-18 px-4">
+      <section className="border-t border-border/80 bg-muted/5 py-24 px-6">
         <div className="container mx-auto max-w-4xl text-center space-y-10">
           <div className="space-y-2">
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
