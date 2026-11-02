@@ -58,8 +58,13 @@ Khi truy cập ứng dụng tại `/builder`, bạn có thể chọn một trong
 3. ProfileForge sẽ tự động cập nhật avatar, bio, danh sách repository nổi bật và các ngôn ngữ bạn hay dùng vào cấu hình.
 
 ### Bước 3: Tùy biến và sắp xếp các Section
-- **Kéo thả để đổi vị trí**: Nhấp và giữ biểu tượng kéo thả bên trái từng section trong danh sách bên trái để di chuyển lên/xuống.
-- **Bật/Tắt hiển thị**: Bấm vào công tắc chuyển đổi (Switch) để ẩn hoặc hiện một section mà không bị mất dữ liệu đã nhập.
+Khu vực chỉnh sửa nằm ở **Cột ngoài cùng bên trái (cột Sections)**:
+- **Kéo thả để đổi thứ tự**:
+  - Tại mỗi thẻ section (*Header, About Me, Tech Stack...*), nhìn vào **sát mép trái** bạn sẽ thấy **biểu tượng 6 dấu chấm (`⋮⋮`)**.
+  - Đưa con trỏ chuột vào đúng biểu tượng `⋮⋮` này (con trỏ chuột sẽ đổi thành hình bàn tay kéo `🖐️`), **nhấn giữ chuột trái** và kéo lên hoặc kéo xuống qua thẻ khác rồi nhả chuột.
+  - *Lưu ý*: Nhấn vào tên chữ của thẻ là để mở bảng cấu hình ở cột giữa, không kéo thả bằng phần tên chữ hay trên khung xem trước Preview.
+- **Bật/Tắt hiển thị**: Bấm vào biểu tượng con mắt hoặc công tắc chuyển đổi (Switch) để ẩn hoặc hiện một section mà không bị mất dữ liệu đã nhập.
+- **Nhân bản / Xóa**: Bấm biểu tượng Copy để nhân bản, hoặc biểu tượng Thùng rác để xóa bỏ section.
 - **Chỉnh sửa nội dung chi tiết**: Nhấp vào section tương ứng, bảng điều khiển cấu hình (Inspector) ở giữa sẽ hiển thị các trường dữ liệu trực quan:
   - Nhập thông tin cá nhân, liên kết mạng xã hội.
   - Chọn các công nghệ trong Tech Stack từ thư viện icon tích hợp.
@@ -71,19 +76,31 @@ Khi truy cập ứng dụng tại `/builder`, bạn có thể chọn một trong
 - Bạn có thể bật chế độ xem Dark/Light mode của trang để kiểm tra mức độ tương thích trên cả hai nền giao diện của GitHub.
 
 ### Bước 5: Xem trước và tinh chỉnh Markdown
-- Cột bên phải cung cấp hai tab:
+- Cột bên phải cung cấp các chế độ xem:
   - **Preview**: Hiển thị chính xác diện mạo trang README của bạn khi hiển thị trên GitHub.
   - **Markdown (CodeMirror 6)**: Hiển thị toàn bộ mã nguồn Markdown được tạo tự động với cú pháp tô màu chuẩn xác.
+  - **Split View**: Xem song song cả Preview và Markdown trên màn hình lớn.
 
-### Bước 6: Cài đặt vào GitHub Profile của bạn
-1. Bấm nút **Export** trên thanh Header:
-   - Chọn **Copy Markdown** để sao chép toàn bộ nội dung vào bộ nhớ tạm.
-   - Hoặc chọn **Download README.md** để tải file về máy.
-   - *(Tùy chọn)* Chọn **Export JSON Config** để sao lưu lại cấu hình, sau này có thể dùng nút **Import JSON** để khôi phục cấu hình này.
-2. Truy cập [GitHub](https://github.com/) và tạo một repository mới có **tên trùng với username của bạn** (Ví dụ: nếu username là `hoducvinhh`, tên repository sẽ là `hoducvinhh/hoducvinhh`).
-3. Đặt trạng thái repository là **Public** và tích chọn **Add a README file**.
-4. Mở file `README.md` trong repository đó, dán toàn bộ nội dung bạn vừa sao chép từ ProfileForge vào và bấm **Commit changes**.
-5. Quay lại trang cá nhân GitHub `https://github.com/<username>`, bạn sẽ thấy hồ sơ hoàn toàn mới của mình!
+### Bước 6: Đưa mã Markdown vào trang cá nhân GitHub (Profile README)
+Sau khi bấm **Export** > **Copy Markdown** từ ProfileForge, thực hiện các bước sau để đưa lên GitHub:
+
+#### 1. Tạo kho lưu trữ đặc biệt (Special Repository)
+- Truy cập vào: **[https://github.com/new](https://github.com/new)**
+- Tại ô **Repository name**: Nhập chính xác **username** GitHub của bạn (ví dụ: `hoducvinhh`).
+- *Dấu hiệu nhận biết*: GitHub sẽ hiện thông báo màu xanh lá cây:  
+  `✨ You found a secret! <username>/<username> is a special repository that you can use to add a README.md to your GitHub profile.`
+- Quyền truy cập: Bắt buộc chọn **Public** *(nếu để Private sẽ không ai nhìn thấy trên trang cá nhân)*.
+- Khởi tạo: Tích chọn ô **Add a README file**.
+- Kéo xuống dưới bấm nút xanh **Create repository**.
+
+#### 2. Dán nội dung Markdown
+- Tại trang repository vừa tạo, nhìn vào góc phải của khung hiển thị file `README.md`, bấm vào biểu tượng chiếc bút chì **✏️ (Edit this file)**.
+- Nhấn `Ctrl + A` rồi xóa hết các dòng chữ mặc định có sẵn.
+- Nhấn `Ctrl + V` để dán toàn bộ đoạn mã Markdown bạn đã copy từ ProfileForge.
+
+#### 3. Lưu và xem thành quả
+- Bấm nút xanh **Commit changes...** ở góc trên bên phải > bấm tiếp **Commit changes** để xác nhận lưu.
+- Bây giờ, mở tab mới và truy cập thẳng vào trang cá nhân của bạn: **`https://github.com/<username>`**. Toàn bộ hồ sơ mới sẽ hiển thị nổi bật ở đầu trang!
 
 ---
 
