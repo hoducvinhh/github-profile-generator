@@ -80,6 +80,13 @@ export function CountrysideCanvas({
   parallaxY = 0,
 }: CountrysideCanvasProps) {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
+  const parallaxRef = React.useRef({ x: parallaxX, y: parallaxY });
+
+  // Update ref continuously on mousemove without tearing down canvas loop
+  React.useEffect(() => {
+    parallaxRef.current.x = parallaxX;
+    parallaxRef.current.y = parallaxY;
+  }, [parallaxX, parallaxY]);
 
   React.useEffect(() => {
     const canvas = canvasRef.current;
@@ -184,10 +191,18 @@ export function CountrysideCanvas({
     window.addEventListener("resize", handleResize);
 
     let time = 0;
+    let currentPX = parallaxRef.current.x;
+    let currentPY = parallaxRef.current.y;
 
     const render = () => {
       time += 0.02;
       ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+      // Smooth buttery lerp for parallax transitions (prevents abrupt jumps or stalling)
+      currentPX += (parallaxRef.current.x - currentPX) * 0.12;
+      currentPY += (parallaxRef.current.y - currentPY) * 0.12;
+      const pX = currentPX;
+      const pY = currentPY;
 
       // =========================================================================
       // 1. WATER RIPPLES & RIVER SHIMMER
@@ -207,8 +222,8 @@ export function CountrysideCanvas({
         ctx.lineWidth = 1.3;
         ctx.beginPath();
         ctx.ellipse(
-          rip.x + parallaxX * 0.15,
-          rip.y + parallaxY * 0.1,
+          rip.x + pX * 0.15,
+          rip.y + pY * 0.1,
           rip.radius,
           rip.radius * 0.4, // aerial isometric tilt
           -0.1,
@@ -236,8 +251,8 @@ export function CountrysideCanvas({
         ctx.fillStyle = `rgba(255, 255, 230, ${p.alpha})`;
         ctx.beginPath();
         ctx.arc(
-          p.x + parallaxX * 0.15,
-          p.y + parallaxY * 0.1,
+          p.x + pX * 0.15,
+          p.y + pY * 0.1,
           p.radius,
           0,
           Math.PI * 2
@@ -255,8 +270,8 @@ export function CountrysideCanvas({
           ctx.strokeStyle = `rgba(255, 240, 185, ${currentAlpha * 0.65})`;
           ctx.lineWidth = 1.2;
           ctx.beginPath();
-          const rx = g.x + parallaxX * 0.15;
-          const ry = g.y + parallaxY * 0.1;
+          const rx = g.x + pX * 0.15;
+          const ry = g.y + pY * 0.1;
           ctx.moveTo(rx - g.len * 0.5, ry);
           ctx.lineTo(rx + g.len * 0.5, ry);
           ctx.stroke();
@@ -276,8 +291,8 @@ export function CountrysideCanvas({
       const boatBobY = Math.sin(rowCycle * 2) * 1.4;
       const boatTilt = Math.sin(rowCycle * 2) * 0.025;
 
-      const boatX = boatBaseX + boatDriftX + parallaxX * 0.15;
-      const boatY = boatBaseY + boatBobY + parallaxY * 0.1;
+      const boatX = boatBaseX + boatDriftX + pX * 0.15;
+      const boatY = boatBaseY + boatBobY + pY * 0.1;
 
       // Emit wake ripples behind the boat
       if (Math.sin(rowCycle * 2) > 0.93 && Math.random() < 0.3) {
@@ -393,8 +408,8 @@ export function CountrysideCanvas({
         fish.rotation = Math.atan2(fish.vy, fish.vx);
 
         ctx.save();
-        const fX = fish.x + parallaxX * 0.15;
-        const fY = fish.y + parallaxY * 0.1;
+        const fX = fish.x + pX * 0.15;
+        const fY = fish.y + pY * 0.1;
         ctx.translate(fX, fY);
         ctx.rotate(fish.rotation);
 
@@ -488,8 +503,8 @@ export function CountrysideCanvas({
         }
 
         ctx.save();
-        const drawX = s.x + parallaxX * (s.depth * 0.25);
-        const drawY = s.y + parallaxY * (s.depth * 0.18);
+        const drawX = s.x + pX * (s.depth * 0.25);
+        const drawY = s.y + pY * (s.depth * 0.18);
         ctx.translate(drawX, drawY);
 
         const sz = s.scale;
@@ -589,8 +604,8 @@ export function CountrysideCanvas({
         ctx.fillStyle = `rgba(255, 245, 195, ${currentAlpha})`;
         ctx.beginPath();
         ctx.arc(
-          m.x + parallaxX * 0.25,
-          m.y + parallaxY * 0.2,
+          m.x + pX * 0.25,
+          m.y + pY * 0.2,
           m.radius,
           0,
           Math.PI * 2
@@ -608,7 +623,7 @@ export function CountrysideCanvas({
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", handleResize);
     };
-  }, [parallaxX, parallaxY]);
+  }, []); // Static empty dependency array: canvas lifecycle runs continuously at 60 FPS without resets on mouse movement
 
   return (
     <canvas
