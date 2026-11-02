@@ -1,33 +1,83 @@
 # Dependencies
-node_modules
-.pnpm-store
+node_modules/
+.pnpm-store/
 
-# Next.js
+# Next.js & Build outputs
 .next/
 out/
+build/
+dist/
 
-# Production
-build
-dist
+# TypeScript & Cache
+*.tsbuildinfo
+next-env.d.ts
+.turbo/
 
-# Environment
+# Environment & Secrets (Personal credentials / local variables)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env*.local
+*.env.local
+*.backup
+*.pem
+*.key
+*.cert
 
-# Debug
+# Internal Plans, Specifications & Personal Notes
+[pP][lL][aA][nN].md
+[pP][lL][aA][nN]*.md
+*plan*.md
+[tT][oO][dD][oO].md
+[tT][oO][dD][oO]*.md
+[nN][oO][tT][eE][sS].md
+[nN][oO][tT][eE][sS]*.md
+SCRATCH.md
+scratch.md
+scratch/
+drafts/
+*.local.md
+
+# IDE & Code Editors (Personal workspace configs)
+.vscode/*
+!.vscode/settings.json.example
+!.vscode/extensions.json
+.idea/
+.cursor/
+.windsurf/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# AI Assistant & Agent local caches
+.agent/
+.gemini/
+.claude/
+.aider*
+
+# Logs & Debug
+*.log
+logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# System
-.DS_Store
-*.pem
-Thumbs.db
+# Test & Coverage
+coverage/
+.nyc_output/
+vitest.config.ts.timestamp-*
 
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
+# OS & System artifacts
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
