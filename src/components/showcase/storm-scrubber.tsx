@@ -11,10 +11,10 @@ interface StormScrubberProps {
 }
 
 const SECTORS = [
-  { id: "COMM", name: "COMMUNICATIONS ARRAY", status: "ONLINE", metric: "384 GHz" },
-  { id: "CRYO", name: "CRYO-CORE SAMPLING", status: "DRILLING", metric: "4,200m" },
-  { id: "REACT", name: "FUSION THERMAL CORE", status: "OPTIMAL", metric: "98.4%" },
-  { id: "OBS", name: "DEEP SPACE OBSERVATORY", status: "LOCKED", metric: "14.2 AU" },
+  { id: "STATION", name: "OUTPOST 94 DOME", status: "ONLINE", metric: "1,420M" },
+  { id: "SHIP", name: "CRASHED SCOUT EX-744", status: "ALERT", metric: "DOWNED" },
+  { id: "CRYO", name: "CRYO-CORE SAMPLING", status: "DRILLING", metric: "4,200M" },
+  { id: "OBS", name: "RADIO ASTRONOMY", status: "LOCKED", metric: "384 GHz" },
 ];
 
 export function StormScrubber({

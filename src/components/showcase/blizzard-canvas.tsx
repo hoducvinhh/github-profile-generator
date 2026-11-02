@@ -138,3 +138,4 @@ export function BlizzardCanvas({ severity }: BlizzardCanvasProps) {
     />
   );
 }
+

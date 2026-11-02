@@ -9,26 +9,35 @@ import {
   Volume2,
   VolumeX,
   Radio,
-  Flame,
   ArrowLeft,
-  Activity,
   Terminal as TerminalIcon,
   Crosshair,
-  Shield,
-  Layers,
+  ShieldAlert,
+  Compass,
 } from "lucide-react";
+
+type TargetId = "STATION" | "SHIP";
 
 export default function StationPage() {
   const [severity, setSeverity] = React.useState<1 | 2 | 3>(2);
-  const [activeSector, setActiveSector] = React.useState("CRYO");
+  const [activeSector, setActiveSector] = React.useState<string>("STATION");
+  const [activeTarget, setActiveTarget] = React.useState<TargetId>("STATION");
   const [audioEnabled, setAudioEnabled] = React.useState(false);
-  const [activeTelemetryLog, setActiveTelemetryLog] = React.useState<string[]>([
-    "INITIALIZING OUTPOST 94 PERMAFROST TELEMETRY...",
-    "CRYOGENIC CORE DEPTH: 4,200M ACHIEVED.",
-    "SURFACE WIND AT 54 KNOTS // SENSORS CALIBRATED.",
-    "THERMAL FUSION CORE OPERATING AT 98.4% EFFICIENCY.",
-  ]);
   const [isScanning, setIsScanning] = React.useState(false);
+
+  const [stationLogs, setStationLogs] = React.useState<string[]>([
+    "OUTPOST 94 GEODESIC DOMES 1-3 MAINTAINING 1.02 ATM PRESSURE.",
+    "RADAR DISH LOCKED ON RECON EX-744 EMERGENCY BEACON (142.8 MHZ).",
+    "THERMAL FUSION CORE EFFICIENCY STABLE AT 98.4%.",
+    "DEEP SUB-ICE CORING MAST PENETRATING PERMAFROST AT 4,200 METERS.",
+  ]);
+
+  const [shipLogs, setShipLogs] = React.useState<string[]>([
+    "CRITICAL: RECON SCOUT EX-744 CRASH-LANDED IN SECTOR 4 RAVINE.",
+    "ATMOSPHERIC ENTRY HULL SCORCHING CONFIRMED // STARBOARD WING FRACTURED.",
+    "EMERGENCY AMBER BEACON BROADCASTING TELEMETRY OVER LOCAL PERMAFROST.",
+    "BIO-TELEMETRY: STASIS COCOON INTACT // 1 LIFE SIGN DETECTED IN FORWARD COCKPIT.",
+  ]);
 
   const toggleAudio = () => {
     if (!windAudio) return;
@@ -48,97 +57,158 @@ export default function StationPage() {
     }
     const stormLog =
       level === 1
-        ? "WIND SPEED MODULATED TO MILD CRYO-DRIFT (-42°C)."
+        ? "WIND SPEED MODULATED TO MILD CRYO-DRIFT (-42°C, 18 KNOTS)."
         : level === 2
         ? "ALERT: FREEZING GALE DETECTED. ICE FORMATION ON OBSERVATION VIEWPORT."
-        : "CRITICAL: CAT-5 WHITEOUT IN PROGRESS. DEPLOYING THERMAL STABILIZERS.";
+        : "CRITICAL: CAT-5 WHITEOUT IN PROGRESS. DEPLOYING HEAVY THERMAL STABILIZERS.";
 
-    setActiveTelemetryLog((prev) => [stormLog, ...prev.slice(0, 5)]);
+    if (activeTarget === "STATION") {
+      setStationLogs((prev) => [stormLog, ...prev.slice(0, 4)]);
+    } else {
+      setShipLogs((prev) => [stormLog, ...prev.slice(0, 4)]);
+    }
   };
 
-  const handleDeepScan = () => {
+  const handleSelectTarget = (target: TargetId) => {
+    setActiveTarget(target);
+    setActiveSector(target);
+  };
+
+  const handleSectorSelect = (sector: string) => {
+    setActiveSector(sector);
+    if (sector === "SHIP" || sector === "STATION") {
+      setActiveTarget(sector);
+    }
+  };
+
+  const handleTriggerAction = () => {
     if (isScanning) return;
     setIsScanning(true);
-    setActiveTelemetryLog((prev) => [
-      "EMITTING HIGH-FREQUENCY SUB-ICE SONAR PULSE...",
-      ...prev,
-    ]);
 
-    setTimeout(() => {
-      setActiveTelemetryLog((prev) => [
-        "SUB-SURFACE ANOMALY DETECTED AT 4,890M DEPTH // ANCIENT EXTRATERRESTRIAL STRATA IDENTIFIED.",
+    if (activeTarget === "STATION") {
+      setStationLogs((prev) => [
+        "EMITTING HIGH-FREQUENCY SUB-ICE SONAR PULSE...",
         ...prev,
       ]);
-      setIsScanning(false);
-    }, 1800);
+      setTimeout(() => {
+        setStationLogs((prev) => [
+          "SUB-SURFACE ANOMALY CONFIRMED AT 4,890M DEPTH // ANCIENT EXTRATERRESTRIAL STRATA DETECTED.",
+          ...prev,
+        ]);
+        setIsScanning(false);
+      }, 1800);
+    } else {
+      setShipLogs((prev) => [
+        "DISPATCHING AUTOMATED CRYO-RESCUE DRONE TO VESSEL EX-744...",
+        ...prev,
+      ]);
+      setTimeout(() => {
+        setShipLogs((prev) => [
+          "DRONE DOCKED WITH FORWARD HATCH // LIFE-SUPPORT UMBILICAL SECURED // EXTRACTION READY.",
+          ...prev,
+        ]);
+        setIsScanning(false);
+      }, 1800);
+    }
   };
+
+  const activeLogs = activeTarget === "STATION" ? stationLogs : shipLogs;
 
   return (
     <div className="relative h-screen w-full flex flex-col justify-between overflow-hidden bg-[#04060a] text-[#f2f4f8] select-none">
-      {/* 60FPS Interactive Blizzard Engine */}
+      {/* Visual Masterpiece: Outpost 94 & Damaged Spaceship Illustration */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center transition-all duration-700"
+        style={{ backgroundImage: "url('/showcase/outpost-blizzard.jpg')" }}
+      />
+
+      {/* Atmospheric Vignette & Contrast Control (guarantees WCAG AA readability) */}
+      <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-t from-[#04060a] via-black/45 to-[#04060a]/90" />
+      <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-[#04060a]/70 via-transparent to-[#04060a]/70" />
+
+      {/* 60FPS Interactive Blizzard Engine Swirling Over Scene */}
       <BlizzardCanvas severity={severity} />
 
-      {/* Frost Viewport Vignette & Atmospheric Radial Core */}
-      <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle_at_50%_40%,rgba(16,24,40,0.6)_0%,rgba(4,6,10,0.95)_75%)]" />
-
-      {/* Atmospheric Mountain Ridge Silhouette & Outpost Geometry */}
-      <div className="pointer-events-none absolute bottom-12 left-0 right-0 h-96 z-0 opacity-40 overflow-hidden">
-        <svg
-          viewBox="0 0 1440 400"
-          className="w-full h-full object-cover"
-          preserveAspectRatio="none"
+      {/* Interactive Target Pins Over Visual Scenery (Positioned in gutters to prevent text occlusion) */}
+      {/* Target Pin 1: Outpost 94 Research Station (Top Left Cliff) */}
+      <button
+        type="button"
+        onClick={() => handleSelectTarget("STATION")}
+        className={`hidden md:flex absolute top-20 sm:top-24 left-4 sm:left-8 z-30 items-center gap-2.5 group transition-all cursor-pointer ${
+          activeTarget === "STATION" ? "scale-105" : "opacity-85 hover:opacity-100"
+        }`}
+        title="Chọn trạm nghiên cứu Outpost 94"
+      >
+        <div
+          className={`h-4 w-4 rounded-full flex items-center justify-center border transition-all ${
+            activeTarget === "STATION"
+              ? "border-[#ff5f1f] bg-[#ff5f1f]"
+              : "border-white/60 bg-black/70"
+          }`}
         >
-          {/* Distant icy mountain ridges */}
-          <polygon
-            points="0,400 0,220 180,140 320,200 480,90 640,190 840,110 1020,180 1200,80 1440,240 1440,400"
-            fill="#09101d"
+          <div
+            className={`h-1.5 w-1.5 rounded-full ${
+              activeTarget === "STATION" ? "bg-black" : "bg-white"
+            }`}
           />
-          {/* Midground ridge with outpost research dome & communication array */}
-          <polygon
-            points="0,400 0,310 240,250 420,280 620,230 720,200 780,200 880,240 1100,220 1280,290 1440,270 1440,400"
-            fill="#05080e"
-          />
-          {/* Outpost Dome Silhouette */}
-          <path
-            d="M 680 230 A 40 40 0 0 1 760 230 Z"
-            fill="#0f1626"
-            stroke="#ff5f1f"
-            strokeWidth="1.5"
-            opacity="0.8"
-          />
-          {/* Communication Tower Antenna */}
-          <line
-            x1="720"
-            y1="190"
-            x2="720"
-            y2="130"
-            stroke="#ff5f1f"
-            strokeWidth="2"
-          />
-          <circle cx="720" cy="128" r="4" fill="#ff5f1f" />
-        </svg>
-
-        {/* Emergency Beacon Light */}
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-[140px] flex items-center justify-center">
-          <div className="h-2.5 w-2.5 rounded-full bg-[#ff5f1f]" />
         </div>
-      </div>
+        <div className="flex flex-col items-start px-2.5 py-1.5 rounded border border-white/20 bg-black/85 backdrop-blur-md text-left font-mono shadow-xl">
+          <span className="text-xs font-bold text-white tracking-wider">
+            [01 · OUTPOST 94]
+          </span>
+          <span className="text-xs text-[#ff773d]">
+            RESEARCH DOMES &amp; RADAR ARRAY
+          </span>
+        </div>
+      </button>
+
+      {/* Target Pin 2: Crashed Scout Spaceship EX-744 (Bottom Right Ravine) */}
+      <button
+        type="button"
+        onClick={() => handleSelectTarget("SHIP")}
+        className={`hidden md:flex absolute bottom-20 sm:bottom-24 right-4 sm:right-8 z-30 items-center gap-2.5 group transition-all cursor-pointer ${
+          activeTarget === "SHIP" ? "scale-105" : "opacity-85 hover:opacity-100"
+        }`}
+        title="Chọn con tàu bị rơi EX-744"
+      >
+        <div
+          className={`h-4 w-4 rounded-full flex items-center justify-center border transition-all ${
+            activeTarget === "SHIP"
+              ? "border-amber-400 bg-amber-400"
+              : "border-white/60 bg-black/70"
+          }`}
+        >
+          <div
+            className={`h-1.5 w-1.5 rounded-full ${
+              activeTarget === "SHIP" ? "bg-black" : "bg-white"
+            }`}
+          />
+        </div>
+        <div className="flex flex-col items-start px-2.5 py-1.5 rounded border border-amber-500/60 bg-black/90 backdrop-blur-md text-left font-mono shadow-xl">
+          <span className="text-xs font-bold text-amber-300 tracking-wider">
+            [02 · CRASHED SCOUT EX-744]
+          </span>
+          <span className="text-xs text-zinc-200">
+            DAMAGED WING · BEACON ON · 1 SURVIVOR
+          </span>
+        </div>
+      </button>
 
       {/* Edge Stamps - Vertical Technical Badges (Villa Castagneto reference) */}
       <div className="hidden xl:flex fixed left-3 top-1/2 -translate-y-1/2 vertical-stamp text-xs font-mono tracking-widest text-zinc-400 uppercase pointer-events-none z-30">
         [// OUTPOST_94 // CRYO_BELT // SECTOR_04 // PERMAFROST: 4,200M]
       </div>
       <div className="hidden xl:flex fixed right-3 top-1/2 -translate-y-1/2 vertical-stamp text-xs font-mono tracking-widest text-zinc-400 uppercase pointer-events-none z-30">
-        [// ATMOSPHERE: 94% N2, 6% CH4 // RADIATION_SHIELD: NOMINAL]
+        [// VESSEL: EX-744 // STATUS: CRITICAL // DISTRESS_BEACON: 142.8MHZ]
       </div>
 
       {/* Top Telemetry Header Bar */}
-      <header className="relative z-30 w-full border-b border-white/[0.12] px-4 sm:px-8 py-3.5 backdrop-blur-md bg-[#04060a]/80">
+      <header className="relative z-30 w-full border-b border-white/[0.12] px-4 sm:px-8 py-3.5 backdrop-blur-md bg-[#04060a]/85">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="flex items-center gap-1.5 text-xs font-mono text-zinc-400 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 text-xs font-mono text-zinc-300 hover:text-white transition-colors"
               title="Return to ProfileForge Studio"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
@@ -158,8 +228,8 @@ export default function StationPage() {
             </div>
           </div>
 
-          {/* Center Coordinates */}
-          <div className="hidden md:flex items-center gap-4 text-xs font-mono text-zinc-400">
+          {/* Center Coordinates & Target Status */}
+          <div className="hidden md:flex items-center gap-4 text-xs font-mono text-zinc-300">
             <span>LAT 82°04&apos;N // LONG 14°18&apos;W</span>
             <span className="text-zinc-600">·</span>
             <span className="text-emerald-400">BEACON LOCKED</span>
@@ -202,45 +272,92 @@ export default function StationPage() {
       </header>
 
       {/* Main Cinematic Center Stage */}
-      <main className="relative z-20 flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-8 text-center max-w-4xl mx-auto w-full">
+      <main className="relative z-20 flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-6 text-center max-w-4xl mx-auto w-full">
         {/* Top Telemetry Tag */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/15 bg-black/40 text-xs font-mono text-zinc-300 mb-4 backdrop-blur-md">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/15 bg-black/60 text-xs font-mono text-zinc-300 mb-3 backdrop-blur-md">
           <Radio className="h-3.5 w-3.5 text-[#ff773d]" />
           <span>DEEP SPACE PERMAFROST OBSERVATORY · EXOPLANET SECTOR 4</span>
         </div>
 
         {/* Ultra-Condensed Bold Headline */}
-        <h1 className="font-display uppercase tracking-tight text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.9] text-white">
+        <h1 className="font-display uppercase tracking-tight text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.9] text-white drop-shadow-md">
           OUTPOST 94
           <br />
           <span className="text-[#ff5f1f]">
-            SUB-ZERO RESEARCH COMPLEX
+            THE FALLEN RECON CRAFT
           </span>
         </h1>
 
-        <p className="mt-4 max-w-xl text-xs sm:text-sm text-zinc-300 font-mono leading-relaxed [text-wrap:pretty]">
-          Sub-surface core extraction and deep space radio astronomy in the Outer Cryo-Belt, operating through persistent sub-zero blizzards.
+        <p className="mt-3 max-w-xl text-xs sm:text-sm text-zinc-200 font-mono leading-relaxed [text-wrap:pretty] drop-shadow">
+          A sub-zero research base overlooking a stranded recon scout vessel embedded in the snow blizzard. Select targets to inspect telemetry.
         </p>
 
+        {/* Two Target Selector Pills */}
+        <div className="mt-4 flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => handleSelectTarget("STATION")}
+            className={`px-3 py-1.5 rounded text-xs font-mono border transition-colors flex items-center gap-1.5 ${
+              activeTarget === "STATION"
+                ? "border-[#ff5f1f] bg-[#ff5f1f] text-black font-bold"
+                : "border-white/20 bg-black/60 text-zinc-300 hover:text-white"
+            }`}
+          >
+            <Compass className="h-3.5 w-3.5" />
+            <span>01 · OUTPOST 94 COMPLEX</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSelectTarget("SHIP")}
+            className={`px-3 py-1.5 rounded text-xs font-mono border transition-colors flex items-center gap-1.5 ${
+              activeTarget === "SHIP"
+                ? "border-amber-400 bg-amber-400 text-black font-bold"
+                : "border-white/20 bg-black/60 text-zinc-300 hover:text-white"
+            }`}
+          >
+            <ShieldAlert className="h-3.5 w-3.5" />
+            <span>02 · CRASHED SCOUT EX-744</span>
+          </button>
+        </div>
+
         {/* Real-time Telemetry Terminal Box */}
-        <div className="mt-8 w-full max-w-2xl rounded-xl border border-white/15 bg-[#05070c]/90 shadow-2xl backdrop-blur-xl p-4 text-left font-mono text-xs">
+        <div className="mt-6 w-full max-w-2xl rounded-xl border border-white/15 bg-[#05070c]/90 shadow-2xl backdrop-blur-xl p-4 text-left font-mono text-xs">
           <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
             <div className="flex items-center gap-2 text-zinc-300">
               <TerminalIcon className="h-3.5 w-3.5 text-[#ff773d]" />
-              <span className="font-bold text-white uppercase">Live Outpost Telemetry</span>
+              <span className="font-bold text-white uppercase">
+                {activeTarget === "STATION"
+                  ? "Live Outpost 94 Diagnostics"
+                  : "Vessel EX-744 Crash Telemetry"}
+              </span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-zinc-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              <span>SENSOR ARRAY ACTIVE</span>
+            <div className="flex items-center gap-2 text-xs text-zinc-300">
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  activeTarget === "STATION" ? "bg-emerald-400" : "bg-amber-400"
+                }`}
+              />
+              <span>
+                {activeTarget === "STATION" ? "SYSTEMS NOMINAL" : "BEACON BROADCASTING"}
+              </span>
             </div>
           </div>
 
           {/* Interactive Log Feed */}
           <div className="space-y-1 font-mono text-xs max-h-24 overflow-y-auto text-zinc-300">
-            {activeTelemetryLog.map((log, index) => (
+            {activeLogs.map((log, index) => (
               <div key={index} className="flex items-start gap-2">
                 <span className="text-[#ff773d] select-none">&gt;</span>
-                <span className={index === 0 ? "text-emerald-400 font-semibold" : "text-zinc-300"}>
+                <span
+                  className={
+                    index === 0
+                      ? activeTarget === "STATION"
+                        ? "text-emerald-400 font-semibold"
+                        : "text-amber-300 font-semibold"
+                      : "text-zinc-300"
+                  }
+                >
                   {log}
                 </span>
               </div>
@@ -249,17 +366,25 @@ export default function StationPage() {
 
           <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between gap-3">
             <span className="text-zinc-400 text-xs hidden sm:inline">
-              READY FOR DEEP-CORE EXTRACTION
+              {activeTarget === "STATION"
+                ? "READY FOR SUB-ICE PROBE PENETRATION"
+                : "STASIS LIFE POD EXTRACTION READY"}
             </span>
 
             <button
               type="button"
-              onClick={handleDeepScan}
+              onClick={handleTriggerAction}
               disabled={isScanning}
-              className="w-full sm:w-auto h-9 px-4 rounded bg-[#ff5f1f] text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#ff773d] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full sm:w-auto h-9 px-4 rounded bg-[#ff5f1f] text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#ff773d] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               <Crosshair className="h-3.5 w-3.5" />
-              <span>{isScanning ? "TRANSMITTING SONAR..." : "COMMENCE DEEP SCAN"}</span>
+              <span>
+                {isScanning
+                  ? "TRANSMITTING PULSE..."
+                  : activeTarget === "STATION"
+                  ? "COMMENCE DEEP SCAN"
+                  : "DEPLOY RESCUE DRONE"}
+              </span>
             </button>
           </div>
         </div>
@@ -270,7 +395,7 @@ export default function StationPage() {
         severity={severity}
         onSelectSeverity={handleSeverityChange}
         activeSector={activeSector}
-        onSelectSector={setActiveSector}
+        onSelectSector={handleSectorSelect}
       />
     </div>
   );

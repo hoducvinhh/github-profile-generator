@@ -122,3 +122,4 @@ class WindSynthesizer {
 }
 
 export const windAudio = typeof window !== "undefined" ? new WindSynthesizer() : (null as any);
+
