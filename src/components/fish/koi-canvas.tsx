@@ -263,10 +263,11 @@ export function KoiCanvas({
       }
 
       // Smooth decay burst speed
-      burstSpeedRef.current *= 0.96;
+      burstSpeedRef.current *= 0.95;
       const effectiveSpeed = swimSpeed * (1.0 + burstSpeedRef.current);
-      time += 0.028 * effectiveSpeed;
-      orbitAngle += 0.018 * effectiveSpeed;
+      // Serene, leisurely Zen swimming cadence
+      time += 0.011 * effectiveSpeed;
+      orbitAngle += 0.0055 * effectiveSpeed;
 
       // Smoothly lerp orbit center towards target cursor (or floating food pellet)
       if (foodsRef.current.length > 0) {
@@ -470,8 +471,8 @@ export function KoiCanvas({
         for (let i = 1; i < N; i++) {
           const u = i / N;
           // Organic swimming equation: head leads with subtle yaw, body amplifies wave towards tail
-          const amp = (0.05 + 0.42 * Math.pow(u, 1.4)) * (effectiveSpeed * 0.85);
-          const wave = Math.sin((time + timeOffset) * 5.4 - i * 0.32) * amp;
+          const amp = (0.04 + 0.32 * Math.pow(u, 1.4)) * (effectiveSpeed * 0.85);
+          const wave = Math.sin((time + timeOffset) * 2.5 - i * 0.28) * amp;
           curAng += wave;
           curX -= Math.cos(curAng) * segLen;
           curY -= Math.sin(curAng) * segLen;
@@ -480,7 +481,7 @@ export function KoiCanvas({
         }
 
         // Tail wake ripples
-        if (showRipples && Math.random() < 0.10) {
+        if (showRipples && Math.random() < 0.08) {
           const tail = pts[N - 1];
           ripplesRef.current.push({
             x: tail.x / vW,
@@ -540,179 +541,7 @@ export function KoiCanvas({
         }
 
         // -----------------------------------------------------------------------
-        // 5.1. PECTORAL FINS (VÂY NGỰC CÁNH QUẠT LỤA VUỐT XUÔI THEO THÂN - Joint 4)
-        // -----------------------------------------------------------------------
-        const pecBase = pts[4];
-        const pecAng = angs[4];
-        const pecFlap = Math.sin((time + timeOffset) * 5.4) * 0.22;
-
-        for (const side of [-1, 1]) {
-          // Outward perpendicular side angle
-          const sideAngle = pecAng + side * (Math.PI * 0.5);
-          // Root of the fin on the body contour
-          const rootX = pecBase.x + Math.cos(sideAngle) * (widths[4] * 0.95);
-          const rootY = pecBase.y + Math.sin(sideAngle) * (widths[4] * 0.95);
-
-          // Fin points backward towards tail, angled slightly outward
-          const baseBackAngle = pecAng + Math.PI;
-          const finCenterDir = baseBackAngle + side * (0.42 + pecFlap * 0.18);
-
-          // 5 feathered translucent fin rays per pectoral fin
-          const numRays = 5;
-          const rayPts: { x: number; y: number }[] = [];
-          for (let r = 0; r < numRays; r++) {
-            const spread = (r / (numRays - 1) - 0.5) * 0.44;
-            const rLen = 13.5 - Math.abs(spread) * 4.2;
-            const rx = rootX + Math.cos(finCenterDir + spread) * rLen;
-            const ry = rootY + Math.sin(finCenterDir + spread) * rLen;
-            rayPts.push({ x: rx, y: ry });
-          }
-
-          // Translucent silk fin webbing with soft pearlescent glow
-          vCtx.fillStyle = isRed
-            ? "rgba(255, 247, 237, 0.65)"
-            : "rgba(241, 245, 249, 0.65)";
-          vCtx.beginPath();
-          vCtx.moveTo(Math.round(rootX), Math.round(rootY));
-          for (const rp of rayPts) {
-            vCtx.lineTo(Math.round(rp.x), Math.round(rp.y));
-          }
-          vCtx.closePath();
-          vCtx.fill();
-
-          // Individual crisp fin rays (tia vây)
-          vCtx.strokeStyle = isRed ? "#fed7aa" : "#ffffff";
-          vCtx.lineWidth = 1;
-          for (let r = 0; r < numRays; r++) {
-            const rp = rayPts[r];
-            vCtx.beginPath();
-            vCtx.moveTo(Math.round(rootX), Math.round(rootY));
-            vCtx.lineTo(Math.round(rp.x), Math.round(rp.y));
-            vCtx.stroke();
-          }
-
-          // Warm Motoaka coral accent at fin base
-          if (isRed) {
-            vCtx.fillStyle = "#f97316";
-            vCtx.fillRect(Math.round(rootX), Math.round(rootY), 1, 1);
-          }
-
-          // Glowing white outer edge on leading ray
-          vCtx.fillStyle = "#ffffff";
-          vCtx.fillRect(Math.round(rayPts[0].x), Math.round(rayPts[0].y), 1, 1);
-        }
-
-        // -----------------------------------------------------------------------
-        // 5.2. PELVIC / VENTRAL FINS (VÂY BỤNG XUÔI THEO THÂN - Joint 13)
-        // -----------------------------------------------------------------------
-        const pelvBase = pts[13];
-        const pelvAng = angs[13];
-        const pelvFlap = Math.sin((time + timeOffset) * 5.4 - 1.2) * 0.18;
-
-        for (const side of [-1, 1]) {
-          const sideAngle = pelvAng + side * (Math.PI * 0.5);
-          const rootX = pelvBase.x + Math.cos(sideAngle) * (widths[13] * 0.9);
-          const rootY = pelvBase.y + Math.sin(sideAngle) * (widths[13] * 0.9);
-
-          const baseBackAngle = pelvAng + Math.PI;
-          const fDir = baseBackAngle + side * (0.30 + pelvFlap * 0.15);
-
-          vCtx.fillStyle = isRed
-            ? "rgba(255, 237, 213, 0.55)"
-            : "rgba(241, 245, 249, 0.55)";
-          vCtx.beginPath();
-          vCtx.moveTo(Math.round(rootX), Math.round(rootY));
-          vCtx.lineTo(
-            Math.round(rootX + Math.cos(fDir) * 7.5),
-            Math.round(rootY + Math.sin(fDir) * 7.5)
-          );
-          vCtx.lineTo(
-            Math.round(rootX + Math.cos(fDir - side * 0.22) * 5.5),
-            Math.round(rootY + Math.sin(fDir - side * 0.22) * 5.5)
-          );
-          vCtx.closePath();
-          vCtx.fill();
-        }
-
-        // -----------------------------------------------------------------------
-        // 5.3. BUTTERFLY VEIL TAIL FIN (VÂY ĐUÔI LỤA THƯỚT THA XẺ CÁNH BƯỚM - Joint N-1)
-        // -----------------------------------------------------------------------
-        const tail = pts[N - 1];
-        const tailAng = angs[N - 1];
-        const tailBaseW = widths[N - 1];
-
-        // 13 undulating silk fin rays forming a double-lobed butterfly caudal fin
-        const tailRayCount = 13;
-        const tailRayTips: { x: number; y: number }[] = [];
-
-        for (let r = 0; r < tailRayCount; r++) {
-          const normR = (r / (tailRayCount - 1) - 0.5) * 2.0; // -1.0 to 1.0
-          const absR = Math.abs(normR);
-
-          // Swallow-tail butterfly profile: lobes are longest at absR ~ 0.65, center has graceful notch
-          const lobeShape = Math.sin(absR * Math.PI);
-          const baseLen = 13.5 + lobeShape * 10.5; // up to 24px silk length
-          const raySpread = normR * 0.78;
-
-          // Secondary sinusoidal wave lag along the trailing silk fabric
-          const lagWave =
-            Math.sin((time + timeOffset) * 5.4 - N * 0.32 - normR * 0.9) *
-            (3.4 * (1.0 - absR * 0.22));
-
-          const rx =
-            tail.x -
-            Math.cos(tailAng + raySpread) * baseLen +
-            Math.sin(tailAng) * lagWave;
-          const ry =
-            tail.y -
-            Math.sin(tailAng + raySpread) * baseLen -
-            Math.cos(tailAng) * lagWave;
-
-          tailRayTips.push({ x: rx, y: ry });
-        }
-
-        // Translucent flowing silk membrane
-        vCtx.fillStyle = isRed
-          ? "rgba(255, 237, 213, 0.42)"
-          : "rgba(241, 245, 249, 0.42)";
-        vCtx.beginPath();
-        vCtx.moveTo(
-          Math.round(tail.x + Math.sin(tailAng) * tailBaseW),
-          Math.round(tail.y - Math.cos(tailAng) * tailBaseW)
-        );
-        for (const tip of tailRayTips) {
-          vCtx.lineTo(Math.round(tip.x), Math.round(tip.y));
-        }
-        vCtx.lineTo(
-          Math.round(tail.x - Math.sin(tailAng) * tailBaseW),
-          Math.round(tail.y + Math.cos(tailAng) * tailBaseW)
-        );
-        vCtx.closePath();
-        vCtx.fill();
-
-        // Delicate radiating fin rays (tia vây đuôi)
-        vCtx.strokeStyle = isRed ? "#fed7aa" : "#ffffff";
-        vCtx.lineWidth = 1;
-        for (let r = 0; r < tailRayCount; r++) {
-          vCtx.beginPath();
-          vCtx.moveTo(Math.round(tail.x), Math.round(tail.y));
-          vCtx.lineTo(Math.round(tailRayTips[r].x), Math.round(tailRayTips[r].y));
-          vCtx.stroke();
-        }
-
-        // Sparkle glints on trailing veil tips
-        for (let r = 0; r < tailRayCount; r += 2) {
-          vCtx.fillStyle = "#ffffff";
-          vCtx.fillRect(
-            Math.round(tailRayTips[r].x),
-            Math.round(tailRayTips[r].y),
-            1,
-            1
-          );
-        }
-
-        // -----------------------------------------------------------------------
-        // 5.4. VOLUMETRIC BODY QUADS WITH NISHIKIGOI COLOR MARKINGS
+        // STEP 1: VOLUMETRIC BODY QUADS (DRAWN FIRST AS SOLID FOUNDATION)
         // -----------------------------------------------------------------------
         for (let i = 0; i < N - 1; i++) {
           let colLeft: string;
@@ -753,7 +582,6 @@ export function KoiCanvas({
             const isSumiPatch = (i >= 9 && i <= 11) || (i >= 17 && i <= 19);
 
             if (isTanchoCrown) {
-              // The iconic Tancho Crown: bright red circular disc on the forehead between the eyes
               colLeft = "#cbd5e1"; // White cheek
               colCenter = "#dc2626"; // Vibrant Scarlet Crown Disc!
               colRight = "#cbd5e1"; // White cheek
@@ -800,12 +628,184 @@ export function KoiCanvas({
 
           // Ginrin Scale Specular Glints on the back
           if (i >= 5 && i <= 20 && i % 2 === 0) {
-            const glintPhase = Math.sin(time * 2.5 + i * 0.8);
-            if (glintPhase > 0.4) {
+            const glintPhase = Math.sin(time * 2.0 + i * 0.8);
+            if (glintPhase > 0.45) {
               vCtx.fillStyle = isRed ? "#fed7aa" : "#ffffff";
               vCtx.fillRect(Math.round(spinePts[i].x), Math.round(spinePts[i].y), 1, 1);
             }
           }
+        }
+
+        // -----------------------------------------------------------------------
+        // STEP 2: PECTORAL FINS (VÂY NGỰC XÒE RỘNG LƯỚT NƯỚC - Joint 4)
+        // -----------------------------------------------------------------------
+        const pecBase = pts[4];
+        const pecAng = angs[4];
+        // Slow, rhythmic, breathing fin flutter
+        const pecFlap = Math.sin((time + timeOffset) * 2.5) * 0.22;
+
+        for (const side of [-1, 1]) {
+          // Outward perpendicular side angle into the water
+          const sideAngle = pecAng + side * (Math.PI * 0.5);
+          // Root of the fin on the body contour
+          const rootX = pecBase.x + Math.cos(sideAngle) * (widths[4] * 0.9);
+          const rootY = pecBase.y + Math.sin(sideAngle) * (widths[4] * 0.9);
+
+          // Fin points OUTWARD into the water and sweeps BACKWARD towards tail (64% PI = 115°)
+          const finCenterDir = pecAng + side * (Math.PI * 0.64) + pecFlap * side * 0.18;
+
+          // 6 feathered translucent fin rays per pectoral fin
+          const numRays = 6;
+          const rayPts: { x: number; y: number }[] = [];
+          for (let r = 0; r < numRays; r++) {
+            const spread = (r / (numRays - 1) - 0.5) * 0.55;
+            const rLen = 15.0 - Math.abs(spread) * 4.5;
+            const rx = rootX + Math.cos(finCenterDir + spread) * rLen;
+            const ry = rootY + Math.sin(finCenterDir + spread) * rLen;
+            rayPts.push({ x: rx, y: ry });
+          }
+
+          // Translucent silk fin webbing with soft pearlescent glow
+          vCtx.fillStyle = isRed
+            ? "rgba(255, 247, 237, 0.72)"
+            : "rgba(241, 245, 249, 0.72)";
+          vCtx.beginPath();
+          vCtx.moveTo(Math.round(rootX), Math.round(rootY));
+          for (const rp of rayPts) {
+            vCtx.lineTo(Math.round(rp.x), Math.round(rp.y));
+          }
+          vCtx.closePath();
+          vCtx.fill();
+
+          // Individual crisp fin rays (tia vây)
+          vCtx.strokeStyle = isRed ? "#fed7aa" : "#ffffff";
+          vCtx.lineWidth = 1;
+          for (let r = 0; r < numRays; r++) {
+            const rp = rayPts[r];
+            vCtx.beginPath();
+            vCtx.moveTo(Math.round(rootX), Math.round(rootY));
+            vCtx.lineTo(Math.round(rp.x), Math.round(rp.y));
+            vCtx.stroke();
+          }
+
+          // Warm Motoaka coral accent at fin base
+          if (isRed) {
+            vCtx.fillStyle = "#f97316";
+            vCtx.fillRect(Math.round(rootX - 1), Math.round(rootY - 1), 2, 2);
+          }
+
+          // Glowing white outer edge on leading ray
+          vCtx.fillStyle = "#ffffff";
+          vCtx.fillRect(Math.round(rayPts[0].x), Math.round(rayPts[0].y), 1, 1);
+        }
+
+        // -----------------------------------------------------------------------
+        // STEP 3: PELVIC / VENTRAL FINS (VÂY BỤNG XUÔI THEO THÂN - Joint 13)
+        // -----------------------------------------------------------------------
+        const pelvBase = pts[13];
+        const pelvAng = angs[13];
+        const pelvFlap = Math.sin((time + timeOffset) * 2.5 - 1.0) * 0.15;
+
+        for (const side of [-1, 1]) {
+          const sideAngle = pelvAng + side * (Math.PI * 0.5);
+          const rootX = pelvBase.x + Math.cos(sideAngle) * (widths[13] * 0.9);
+          const rootY = pelvBase.y + Math.sin(sideAngle) * (widths[13] * 0.9);
+
+          // Points outward and back at 135°
+          const fDir = pelvAng + side * (Math.PI * 0.75) + pelvFlap * side * 0.12;
+
+          vCtx.fillStyle = isRed
+            ? "rgba(255, 237, 213, 0.60)"
+            : "rgba(241, 245, 249, 0.60)";
+          vCtx.beginPath();
+          vCtx.moveTo(Math.round(rootX), Math.round(rootY));
+          vCtx.lineTo(
+            Math.round(rootX + Math.cos(fDir) * 8.0),
+            Math.round(rootY + Math.sin(fDir) * 8.0)
+          );
+          vCtx.lineTo(
+            Math.round(rootX + Math.cos(fDir - side * 0.22) * 6.0),
+            Math.round(rootY + Math.sin(fDir - side * 0.22) * 6.0)
+          );
+          vCtx.closePath();
+          vCtx.fill();
+        }
+
+        // -----------------------------------------------------------------------
+        // STEP 4: BUTTERFLY VEIL TAIL FIN (VÂY ĐUÔI LỤA THƯỚT THA XẺ CÁNH BƯỚM - Joint N-1)
+        // -----------------------------------------------------------------------
+        const tail = pts[N - 1];
+        const tailAng = angs[N - 1];
+        const tailBaseW = widths[N - 1];
+
+        // 13 undulating silk fin rays forming a double-lobed butterfly caudal fin
+        const tailRayCount = 13;
+        const tailRayTips: { x: number; y: number }[] = [];
+
+        for (let r = 0; r < tailRayCount; r++) {
+          const normR = (r / (tailRayCount - 1) - 0.5) * 2.0; // -1.0 to 1.0
+          const absR = Math.abs(normR);
+
+          // Swallow-tail butterfly profile: lobes are longest at absR ~ 0.65, center has graceful notch
+          const lobeShape = Math.sin(absR * Math.PI);
+          const baseLen = 13.5 + lobeShape * 10.5; // up to 24px silk length
+          const raySpread = normR * 0.78;
+
+          // Secondary sinusoidal wave lag along the trailing silk fabric (serene slow motion)
+          const lagWave =
+            Math.sin((time + timeOffset) * 2.5 - N * 0.28 - normR * 0.8) *
+            (3.0 * (1.0 - absR * 0.22));
+
+          const rx =
+            tail.x -
+            Math.cos(tailAng + raySpread) * baseLen +
+            Math.sin(tailAng) * lagWave;
+          const ry =
+            tail.y -
+            Math.sin(tailAng + raySpread) * baseLen -
+            Math.cos(tailAng) * lagWave;
+
+          tailRayTips.push({ x: rx, y: ry });
+        }
+
+        // Translucent flowing silk membrane
+        vCtx.fillStyle = isRed
+          ? "rgba(255, 237, 213, 0.45)"
+          : "rgba(241, 245, 249, 0.45)";
+        vCtx.beginPath();
+        vCtx.moveTo(
+          Math.round(tail.x + Math.sin(tailAng) * tailBaseW),
+          Math.round(tail.y - Math.cos(tailAng) * tailBaseW)
+        );
+        for (const tip of tailRayTips) {
+          vCtx.lineTo(Math.round(tip.x), Math.round(tip.y));
+        }
+        vCtx.lineTo(
+          Math.round(tail.x - Math.sin(tailAng) * tailBaseW),
+          Math.round(tail.y + Math.cos(tailAng) * tailBaseW)
+        );
+        vCtx.closePath();
+        vCtx.fill();
+
+        // Delicate radiating fin rays (tia vây đuôi)
+        vCtx.strokeStyle = isRed ? "#fed7aa" : "#ffffff";
+        vCtx.lineWidth = 1;
+        for (let r = 0; r < tailRayCount; r++) {
+          vCtx.beginPath();
+          vCtx.moveTo(Math.round(tail.x), Math.round(tail.y));
+          vCtx.lineTo(Math.round(tailRayTips[r].x), Math.round(tailRayTips[r].y));
+          vCtx.stroke();
+        }
+
+        // Sparkle glints on trailing veil tips
+        for (let r = 0; r < tailRayCount; r += 2) {
+          vCtx.fillStyle = "#ffffff";
+          vCtx.fillRect(
+            Math.round(tailRayTips[r].x),
+            Math.round(tailRayTips[r].y),
+            1,
+            1
+          );
         }
 
         // -----------------------------------------------------------------------

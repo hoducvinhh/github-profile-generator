@@ -15,7 +15,7 @@ export default function FishPage() {
   // Pixel scale: "medium" (8px) matches the user's requirement: "ô vuông vừa phải không nhỏ quá nhé"
   const [pixelScale, setPixelScale] = React.useState<PixelScaleMode>("medium");
   const [theme, setTheme] = React.useState<PondTheme>("midnight");
-  const [swimSpeed, setSwimSpeed] = React.useState(1.0);
+  const [swimSpeed, setSwimSpeed] = React.useState(0.8);
 
   const [showLilypads, setShowLilypads] = React.useState(true);
   const [showPetals, setShowPetals] = React.useState(true);

@@ -587,9 +587,9 @@ export function KoiControls({
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { speed: 0.65, label: "Thư Thái", desc: "0.65x" },
-                    { speed: 1.0, label: "Tự Nhiên", desc: "1.0x" },
-                    { speed: 1.5, label: "Nhanh", desc: "1.5x" },
+                    { speed: 0.5, label: "Rất Chậm", desc: "0.5x" },
+                    { speed: 0.8, label: "Từ Tốn", desc: "0.8x" },
+                    { speed: 1.2, label: "Tự Nhiên", desc: "1.2x" },
                   ].map((item) => (
                     <button
                       key={item.label}
