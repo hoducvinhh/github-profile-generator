@@ -208,3 +208,4 @@ class ChiptunePastoralSynthesizer {
 
 export const chiptunePastoralAudio =
   typeof window !== "undefined" ? new ChiptunePastoralSynthesizer() : null;
+
