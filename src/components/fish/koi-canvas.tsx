@@ -16,8 +16,19 @@ export interface KoiCanvasProps {
   showRipples: boolean;
   crtEffect: boolean;
   pixelGrid: boolean;
+  interactMode?: "ripple" | "feed";
+  onFoodEaten?: () => void;
   onFpsUpdate?: (fps: number) => void;
   canvasRef?: React.RefObject<HTMLCanvasElement | null>;
+}
+
+interface FoodPellet {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  age: number;
+  maxAge: number;
 }
 
 interface PixelRipple {
@@ -103,6 +114,8 @@ export function KoiCanvas({
   showRipples = true,
   crtEffect = false,
   pixelGrid = false,
+  interactMode = "ripple",
+  onFoodEaten,
   onFpsUpdate,
   canvasRef: externalCanvasRef,
 }: KoiCanvasProps) {
@@ -133,10 +146,11 @@ export function KoiCanvas({
     }
   }, [pixelScale]);
 
-  // Petals and Lilypads
+  // Petals, Lilypads, Ripples, and Food Pellets
   const petalsRef = React.useRef<Petal[]>([]);
   const lilypadsRef = React.useRef<Lilypad[]>([]);
   const ripplesRef = React.useRef<PixelRipple[]>([]);
+  const foodsRef = React.useRef<FoodPellet[]>([]);
 
   // Initialize petals & lilypads on mount
   React.useEffect(() => {
@@ -169,29 +183,57 @@ export function KoiCanvas({
     targetOrbitRef.current = { x: nx, y: ny };
   };
 
-  // Click handler: create water shockwave ripple & sound
+  // Click handler: create water shockwave ripple OR drop fish food pellets
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const nx = (e.clientX - rect.left) / rect.width;
     const ny = (e.clientY - rect.top) / rect.height;
 
-    // Spawns ripple in normalized coordinates
-    ripplesRef.current.push({
-      x: nx,
-      y: ny,
-      r: 1,
-      maxR: 35,
-      alpha: 1.0,
-      speed: 0.85,
-    });
+    if (interactMode === "feed") {
+      // Drop 3 floating food pellets
+      for (let i = 0; i < 3; i++) {
+        foodsRef.current.push({
+          x: nx + (Math.random() - 0.5) * 0.03,
+          y: ny + (Math.random() - 0.5) * 0.03,
+          vx: (Math.random() - 0.5) * 0.0008,
+          vy: (Math.random() - 0.5) * 0.0008,
+          age: 0,
+          maxAge: 480, // lasts ~8 seconds
+        });
+      }
 
-    // Play procedural water pling drop
-    if (zenWaterAudio && zenWaterAudio.getStatus()) {
-      zenWaterAudio.playWaterDrop();
+      // Small entry water ripple
+      ripplesRef.current.push({
+        x: nx,
+        y: ny,
+        r: 1,
+        maxR: 16,
+        alpha: 0.75,
+        speed: 0.55,
+      });
+
+      if (zenWaterAudio && zenWaterAudio.getStatus()) {
+        zenWaterAudio.playWaterDrop(1760.0);
+      }
+      burstSpeedRef.current = 0.8;
+    } else {
+      // Shockwave ripple
+      ripplesRef.current.push({
+        x: nx,
+        y: ny,
+        r: 1,
+        maxR: 35,
+        alpha: 1.0,
+        speed: 0.85,
+      });
+
+      if (zenWaterAudio && zenWaterAudio.getStatus()) {
+        zenWaterAudio.playWaterDrop();
+      }
+
+      // Boost fish speed briefly
+      burstSpeedRef.current = 1.8;
     }
-
-    // Boost fish speed briefly
-    burstSpeedRef.current = 1.8;
   };
 
   // Main 60 FPS Canvas Render Loop
@@ -226,7 +268,13 @@ export function KoiCanvas({
       time += 0.028 * effectiveSpeed;
       orbitAngle += 0.018 * effectiveSpeed;
 
-      // Smoothly lerp orbit center towards target cursor
+      // Smoothly lerp orbit center towards target cursor (or floating food pellet)
+      if (foodsRef.current.length > 0) {
+        const nearestFood = foodsRef.current[0];
+        targetOrbitRef.current.x += (nearestFood.x - targetOrbitRef.current.x) * 0.04;
+        targetOrbitRef.current.y += (nearestFood.y - targetOrbitRef.current.y) * 0.04;
+      }
+
       currentOrbitRef.current.x +=
         (targetOrbitRef.current.x - currentOrbitRef.current.x) * 0.04;
       currentOrbitRef.current.y +=
@@ -320,6 +368,33 @@ export function KoiCanvas({
           vCtx.closePath();
           vCtx.stroke();
         }
+      }
+
+      // =========================================================================
+      // 3.5. FLOATING KOI FOOD PELLETS (THỨC ĂN CÁ KOI NỔI TRÊN MẶT NƯỚC)
+      // =========================================================================
+      for (let f = foodsRef.current.length - 1; f >= 0; f--) {
+        const food = foodsRef.current[f];
+        food.age++;
+        food.x += food.vx;
+        food.y += food.vy;
+        food.vx *= 0.985;
+        food.vy *= 0.985;
+
+        if (food.age > food.maxAge) {
+          foodsRef.current.splice(f, 1);
+          continue;
+        }
+
+        const fx = Math.round(food.x * vW);
+        const fy = Math.round(food.y * vH);
+        const bob = Math.sin(time * 3.5 + food.x * 15) * 0.45;
+
+        // Floating golden feed morsel
+        vCtx.fillStyle = "#d97706";
+        vCtx.fillRect(fx, Math.round(fy + bob), 2, 2);
+        vCtx.fillStyle = "#fef08a";
+        vCtx.fillRect(fx, Math.round(fy + bob), 1, 1);
       }
 
       // =========================================================================
@@ -757,6 +832,30 @@ export function KoiCanvas({
         const head = pts[0];
         const headAng = angs[0];
         const hRad = widths[0];
+
+        // Check Food Nibbling by Koi Mouth
+        const mouthX = head.x;
+        const mouthY = head.y;
+        for (let f = foodsRef.current.length - 1; f >= 0; f--) {
+          const food = foodsRef.current[f];
+          const fx = food.x * vW;
+          const fy = food.y * vH;
+          if (Math.hypot(mouthX - fx, mouthY - fy) < 8.5) {
+            foodsRef.current.splice(f, 1);
+            ripplesRef.current.push({
+              x: food.x,
+              y: food.y,
+              r: 1,
+              maxR: 12,
+              alpha: 0.85,
+              speed: 0.5,
+            });
+            if (zenWaterAudio && zenWaterAudio.getStatus()) {
+              zenWaterAudio.playFeedBubble();
+            }
+            onFoodEaten?.();
+          }
+        }
 
         // Snout fill
         vCtx.fillStyle = isRed ? "#f8fafc" : "#ffffff";

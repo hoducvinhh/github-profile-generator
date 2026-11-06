@@ -36,7 +36,7 @@ class ZenWaterSynthesizer {
     // Master Gain
     this.masterGain = ctx.createGain();
     this.masterGain.gain.setValueAtTime(0.01, ctx.currentTime);
-    this.masterGain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 1.5);
+    this.masterGain.gain.exponentialRampToValueAtTime(0.28, ctx.currentTime + 1.5);
     this.masterGain.connect(ctx.destination);
 
     // 1. Gentle Pond Water Lapping (Resonant Bandpass Filtered Noise)
@@ -44,6 +44,38 @@ class ZenWaterSynthesizer {
 
     // 2. Scheduled Zen Water Droplets (Suikinkutsu plings)
     this.scheduleNextWaterDrop();
+  }
+
+  public setVolume(volume: number) {
+    if (!this.ctx || !this.masterGain) return;
+    const clamped = Math.max(0, Math.min(1, volume));
+    const now = this.ctx.currentTime;
+    this.masterGain.gain.cancelScheduledValues(now);
+    this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, now);
+    this.masterGain.gain.linearRampToValueAtTime(clamped * 0.35, now + 0.1);
+  }
+
+  public playFeedBubble() {
+    if (!this.ctx || !this.masterGain || !this.isPlaying) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(380, now);
+    osc.frequency.exponentialRampToValueAtTime(740, now + 0.08);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.08, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc.start(now);
+    osc.stop(now + 0.2);
   }
 
   private startWaterCurrent() {
