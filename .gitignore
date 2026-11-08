@@ -52,11 +52,9 @@ src/app/travel/
 src/components/fish/
 src/components/pixel/
 src/components/showcase/
-src/components/travel/
 src/lib/audio/
 public/pixel/
 public/showcase/
-public/travel/
 
 # IDE & Code Editors (Personal workspace configs)
 .vscode/*
