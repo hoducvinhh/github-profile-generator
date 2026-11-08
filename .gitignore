@@ -44,6 +44,20 @@ scratch/
 drafts/
 *.local.md
 
+# Showcase & Experimental Routes (Non-Profile Generator)
+src/app/fish/
+src/app/pixel/
+src/app/station/
+src/app/travel/
+src/components/fish/
+src/components/pixel/
+src/components/showcase/
+src/components/travel/
+src/lib/audio/
+public/pixel/
+public/showcase/
+public/travel/
+
 # IDE & Code Editors (Personal workspace configs)
 .vscode/*
 !.vscode/settings.json.example
