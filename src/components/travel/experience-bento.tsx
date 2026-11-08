@@ -1,141 +1,124 @@
 "use client";
 
 import * as React from "react";
-import { Sunrise, Waves, Mountain, Utensils, ArrowUpRight, ShieldCheck, Clock } from "lucide-react";
-
-interface BentoItem {
-  id: string;
-  badge: string;
-  title: string;
-  subtitle: string;
-  description: string;
-  timeEstimate: string;
-  conservationNote: string;
-  icon: React.ElementType;
-  span: string; // Tailwind grid span
-}
-
-const EXPERIENCES: BentoItem[] = [
-  {
-    id: "sunset-river",
-    badge: "01 · ĐẶC QUYỀN BAN MAI",
-    title: "Bình Minh Trên Sông Ngô Đồng",
-    subtitle: "Thung lũng Tam Cốc lúc 05:45",
-    description:
-      "Lướt nhẹ trên mặt nước phẳng lặng như gương khi tia nắng đầu ngày rọi xiên qua làn sương núi, nhuộm vàng các dải lúa chín đôi bờ trước khi đoàn khách đông đổ về.",
-    timeEstimate: "120 phút",
-    conservationNote: "Hành trình 0 phát thải, bảo tồn độ tĩnh lặng sinh quyển",
-    icon: Sunrise,
-    span: "lg:col-span-8",
-  },
-  {
-    id: "traditional-rowing",
-    badge: "02 · DI SẢN BẢN ĐỊA",
-    title: "Kỹ Thuật Chèo Đò Bằng Chân",
-    subtitle: "Tinh hoa làng nghề truyền thống",
-    description:
-      "Tập tục điều khiển mái chèo bằng đôi chân điêu luyện của người chèo đò bản địa — nét văn hóa sinh hoạt sông nước độc nhất vô nhị vùng đồng bằng Bắc Bộ.",
-    timeEstimate: "Suốt hải trình",
-    conservationNote: "100% người chèo đò là cư dân bản địa được bảo hộ sinh kế",
-    icon: Waves,
-    span: "lg:col-span-4",
-  },
-  {
-    id: "geological-caves",
-    badge: "03 · KIẾN TẠO TRIỆU NĂM",
-    title: "Vòm Hang Địa Chất Cổ",
-    subtitle: "Hang Cả, Hang Hai, Hang Ba",
-    description:
-      "Xuyên qua các vòm hang đá vôi karst chìm ngập nước hàng triệu năm với luồng gió mát lạnh tự nhiên và các tầng nhũ đá buông rủ rêu phong kỳ vĩ.",
-    timeEstimate: "45 phút xuyên hang",
-    conservationNote: "Giữ nguyên trạng nhũ đá tự nhiên, không gắn đèn màu nhân tạo",
-    icon: Mountain,
-    span: "lg:col-span-4",
-  },
-  {
-    id: "harvest-cuisine",
-    badge: "04 · ẨM THỰC DI SẢN",
-    title: "Hương Vị Mùa Gặt Đồng Chiêm",
-    subtitle: "Nông sản hữu cơ thung lũng",
-    description:
-      "Thưởng thức mâm cơm niêu gạo mới dẻo thơm, cá rô đồng nướng than hoa cùng tách trà hoa sen ướp sớm trên bờ đê làng lộng gió.",
-    timeEstimate: "Trải nghiệm ẩm thực",
-    conservationNote: "Nguyên liệu canh tác tự nhiên không hóa chất vùng đệm",
-    icon: Utensils,
-    span: "lg:col-span-8",
-  },
-];
+import { Sunrise, Mountain, Landmark, Clock, ShieldCheck, Compass } from "lucide-react";
 
 export function ExperienceBento() {
   return (
-    <section className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-8 py-16">
+    <section
+      id="trai-nghiem"
+      className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-8 py-24 border-t border-white/[0.08]"
+    >
       {/* Section Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b border-white/10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-6 border-b border-white/10">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-400/30 bg-amber-400/10 text-amber-300 font-mono text-xs mb-3">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-amber-400" />
-            <span>TRẢI NGHIỆM ĐỘC BẢN TAM CỐC</span>
+            <Compass className="h-3.5 w-3.5" />
+            <span>HÀNH TRÌNH TUYỂN CHỌN</span>
           </div>
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
-            CHẠM VÀO TINH HOA
-            <br />
-            <span className="text-amber-300">NON NƯỚC NINH BÌNH</span>
+          <h2 className="font-serif text-3xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
+            BA TRẢI NGHIỆM ĐỘC BẢN
           </h2>
         </div>
         <p className="max-w-md text-sm text-zinc-300 font-sans leading-relaxed">
-          Không tour đại trà xô bồ. Mỗi hành trình được thiết kế chậm rãi, tôn trọng nhịp sống tự nhiên và văn hóa bản địa lâu đời.
+          Được thiết kế tinh tế theo nhịp điệu sinh hoạt bản địa, tôn trọng tối đa sự thanh tịnh và tính nguyên bản của khu di sản.
         </p>
       </div>
 
-      {/* Asymmetric Bento Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
-        {EXPERIENCES.map((item) => {
-          const Icon = item.icon;
-          return (
-            <div
-              key={item.id}
-              className={`group relative rounded-2xl border border-white/10 bg-zinc-950/60 backdrop-blur-xl p-6 sm:p-8 flex flex-col justify-between transition-all duration-300 hover:border-amber-400/40 hover:bg-zinc-900/70 shadow-lg ${item.span}`}
-            >
-              {/* Top Accent & Icon */}
-              <div>
-                <div className="flex items-center justify-between gap-4 mb-4">
-                  <span className="font-mono text-xs text-amber-300 tracking-wider">
-                    {item.badge}
-                  </span>
-                  <div className="h-9 w-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-amber-300 group-hover:border-amber-400/40 group-hover:bg-amber-400/10 transition-all">
-                    <Icon className="h-4.5 w-4.5" />
-                  </div>
-                </div>
-
-                <h3 className="font-serif text-xl sm:text-2xl font-bold text-white mb-1 group-hover:text-amber-200 transition-colors">
-                  {item.title}
-                </h3>
-                <div className="text-xs font-mono text-zinc-400 mb-4">
-                  {item.subtitle}
-                </div>
-
-                <p className="text-sm text-zinc-300 font-sans leading-relaxed [text-wrap:pretty]">
-                  {item.description}
-                </p>
-              </div>
-
-              {/* Bottom Meta & Conservation Seal */}
-              <div className="mt-8 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-zinc-400">
-                <div className="flex items-center gap-1.5 text-zinc-300">
-                  <Clock className="h-3.5 w-3.5 text-amber-400" />
-                  <span>{item.timeEstimate}</span>
-                </div>
-
-                <div className="flex items-center gap-1.5 text-emerald-400">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  <span className="line-clamp-1">{item.conservationNote}</span>
-                </div>
+      {/* Asymmetric Bento Composition */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Experience 01: A Journey Through the Golden Valley (Hero Large Visual, 8 Cols) */}
+        <div className="lg:col-span-8 rounded-3xl border border-white/10 bg-zinc-950/70 backdrop-blur-xl p-8 sm:p-10 flex flex-col justify-between transition-all duration-300 hover:border-amber-400/40 hover:bg-zinc-900/80 shadow-2xl relative overflow-hidden group">
+          <div>
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <span className="font-mono text-xs font-bold text-amber-300 tracking-widest">
+                01 · HÀI HÒA NON NƯỚC
+              </span>
+              <div className="h-9 w-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-amber-300 group-hover:bg-amber-400/10 transition-colors">
+                <Sunrise className="h-4.5 w-4.5" />
               </div>
             </div>
-          );
-        })}
+
+            <h3 className="font-serif text-2xl sm:text-4xl font-bold text-white mb-2 leading-tight">
+              Hành Trình Thung Lũng Vàng
+            </h3>
+            <div className="text-xs font-mono text-zinc-400 mb-6">
+              Thuyền nan sớm mai trên dòng Ngô Đồng (05:45 – 07:45)
+            </div>
+
+            <p className="text-sm sm:text-base text-zinc-300 font-sans leading-relaxed max-w-2xl [text-wrap:pretty]">
+              Xuôi mái chèo nhẹ nhàng trên dòng nước tĩnh lặng khi nắng sớm vừa rọi xiên qua màn sương thung lũng, phản chiếu sắc vàng rực của mùa lúa chiêm đôi bờ. Bạn sẽ cảm nhận trọn vẹn sự giao hòa giữa lao động của người nông dân và thiên nhiên hùng vĩ trước khi các đoàn thuyền đông đúc bắt đầu xuất bến.
+            </p>
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-zinc-400">
+            <div className="flex items-center gap-2 text-zinc-300">
+              <Clock className="h-3.5 w-3.5 text-amber-400" />
+              <span>Thời lượng: 120 phút</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-emerald-400">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span>100% Thuyền chèo thủ công, 0 khói bụi cơ giới</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Experience 02: Ancient Limestone (Compact Column, 4 Cols) */}
+        <div className="lg:col-span-4 rounded-3xl border border-white/10 bg-zinc-950/70 backdrop-blur-xl p-8 flex flex-col justify-between transition-all duration-300 hover:border-amber-400/40 hover:bg-zinc-900/80 shadow-2xl relative overflow-hidden group">
+          <div>
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <span className="font-mono text-xs font-bold text-amber-300 tracking-widest">
+                02 · ĐỊA CHẤT
+              </span>
+              <div className="h-9 w-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-amber-300 group-hover:bg-amber-400/10 transition-colors">
+                <Mountain className="h-4.5 w-4.5" />
+              </div>
+            </div>
+
+            <h3 className="font-serif text-2xl sm:text-3xl font-bold text-white mb-2 leading-tight">
+              Kỳ Quan Đá Vôi Cổ Đại
+            </h3>
+            <div className="text-xs font-mono text-zinc-400 mb-4">
+              Xuyên lòng Hang Cả, Hang Hai, Hang Ba
+            </div>
+
+            <p className="text-sm text-zinc-300 font-sans leading-relaxed [text-wrap:pretty]">
+              Len lỏi dưới những vòm hang ngập nước rêu phong mát rượi, chiêm ngưỡng các nhũ đá karst buông rủ kỳ thú và lắng nghe tiếng giọt nước thánh thót rơi từ trần hang triệu năm tuổi.
+            </p>
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between text-xs font-mono text-zinc-400">
+            <span className="text-emerald-400">Không gắn đèn màu nhân tạo</span>
+          </div>
+        </div>
+
+        {/* Experience 03: A Living Heritage (Full-Width Editorial Ribbon, 12 Cols) */}
+        <div className="lg:col-span-12 rounded-3xl border border-white/10 bg-zinc-950/70 backdrop-blur-xl p-8 sm:p-10 transition-all duration-300 hover:border-amber-400/40 hover:bg-zinc-900/80 shadow-2xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 group">
+          <div className="lg:max-w-3xl">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="font-mono text-xs font-bold text-amber-300 tracking-widest">
+                03 · DI SẢN SỐNG
+              </span>
+              <span className="h-1 w-1 rounded-full bg-zinc-600" />
+              <span className="font-mono text-xs text-zinc-400">KIẾN TRÚC &amp; VĂN HÓA BẢN ĐỊA</span>
+            </div>
+
+            <h3 className="font-serif text-2xl sm:text-3xl font-bold text-white mb-2">
+              Chùa Bích Động &amp; Nếp Làng Cổ Truyền
+            </h3>
+
+            <p className="text-sm sm:text-base text-zinc-300 font-sans leading-relaxed [text-wrap:pretty]">
+              Khám phá ngôi chùa cổ tam cấp xây dựng từ thế kỷ 15 nương theo vách núi đá vôi u tịch, dạo bước qua cầu đá hoa sen và giao lưu cùng các nghệ nhân làng thêu ren Văn Lâm nằm yên bình nơi cửa ngõ di sản.
+            </p>
+          </div>
+
+          <div className="shrink-0 p-5 rounded-2xl border border-white/10 bg-white/[0.03] space-y-2 text-xs font-mono">
+            <div className="text-amber-300 font-bold">LỜI KHUYÊN DU KHÁCH</div>
+            <div className="text-zinc-300">Trang phục kín đáo khi vào chùa</div>
+            <div className="text-zinc-400">Thời điểm thích hợp: Buổi chiều tĩnh lặng</div>
+          </div>
+        </div>
       </div>
     </section>
   );
 }
-
